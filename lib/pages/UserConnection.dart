@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:message_app/pages/ConnectionForm.dart';
 
 class Userconnection extends StatefulWidget {
   const Userconnection({super.key});
@@ -20,6 +21,7 @@ class _UserconnectionState extends State<Userconnection> {
                     color: Colors.red, fontSize: 40, fontWeight: FontWeight.bold),),
               ),
               Text('Entrez Vos Identifiants'),
+              Connectionform()
         ]
     )
     );
