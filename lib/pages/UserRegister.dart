@@ -15,20 +15,26 @@ class _UserregisterState extends State<Userregister> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-        body:SingleChildScrollView(
-            child: Column(
-            children: [
-              SizedBox(height: 100),
-              Center(
-                child: Text('Créer Un Compte', style: TextStyle(
-                    color: Colors.red, fontSize: 40, fontWeight: FontWeight.bold),),
+      resizeToAvoidBottomInset: false,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            SizedBox(height: 100),
+            Center(
+              child: Text(
+                'Créer Un Compte',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              Text('Veuillez remplir le formulaire ci-dessous'),
-              Registerform()
-            ]
-        )
-    )
+            ),
+            Text('Veuillez remplir le formulaire ci-dessous'),
+            Registerform(),
+          ],
+        ),
+      ),
     );
   }
 }

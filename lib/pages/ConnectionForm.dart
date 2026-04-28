@@ -12,61 +12,60 @@ class _ConnectionformState extends State<Connectionform> {
   @override
   Widget build(BuildContext context) {
     return Form(
-      child:  Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-              child: TextField(
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Email',
-                  hintText: 'Entrez votre email',
-                ),
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+            child: TextField(
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Email',
+                hintText: 'Entrez votre email',
               ),
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-              child: TextField(
-                obscureText: true,
-                keyboardType: TextInputType.visiblePassword,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Password',
-                  hintText: 'Entrez votre password',
-                ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+            child: TextField(
+              obscureText: true,
+              keyboardType: TextInputType.visiblePassword,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Password',
+                hintText: 'Entrez votre password',
               ),
             ),
-            SizedBox(height: 20),
-            TextButton(
-              onPressed: () {},
-              child: Text(
-                'Mot de passe Oublié ?',
-                style: TextStyle(color: Colors.red[300]),
+          ),
+          SizedBox(height: 20),
+          TextButton(
+            onPressed: () {},
+            child: Text(
+              'Mot de passe Oublié ?',
+              style: TextStyle(color: Colors.red[300]),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red[300],
+              foregroundColor: Colors.white,
+              minimumSize: Size(320, 50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[300],
-                foregroundColor: Colors.white,
-                minimumSize: Size(320, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              onPressed: () {},
-              child: Text('Se Connecter', style: TextStyle(fontSize: 20)),
-            ),
-            SizedBox(height: 20),
-            TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/userregister');
-              },
-              child: Text('Créer un nouveau Compte'),
-            ),
-          ],
+            onPressed: () {},
+            child: Text('Se Connecter', style: TextStyle(fontSize: 20)),
+          ),
+          SizedBox(height: 20),
+          TextButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/userregister');
+            },
+            child: Text('Créer un nouveau Compte'),
+          ),
+        ],
       ),
     );
   }
-  }
-
+}
