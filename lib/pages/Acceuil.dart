@@ -29,11 +29,12 @@ class _AcceuilState extends State<Acceuil> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               ElevatedButton(onPressed: (){
-
+                  Navigator.pushNamed(context, '/userconnection');
               },
                   child: Text('Se Connecter')),
-              ElevatedButton(onPressed: (){
 
+              ElevatedButton(onPressed: (){
+                  Navigator.pushNamed(context, '/userregister');
               },
                   child: Text('Créer Un Compte')),
             ]

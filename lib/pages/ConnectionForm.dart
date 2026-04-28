@@ -59,7 +59,9 @@ class _ConnectionformState extends State<Connectionform> {
             ),
             SizedBox(height: 20),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, '/userregister');
+              },
               child: Text('Créer un nouveau Compte'),
             ),
           ],

@@ -13,7 +13,10 @@ class _UserconnectionState extends State<Userconnection> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Column(
+        resizeToAvoidBottomInset: false,
+        body:SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+            child: Column(
             children: [
               SizedBox(height: 100),
               Center(
@@ -23,6 +26,7 @@ class _UserconnectionState extends State<Userconnection> {
               Text('Entrez Vos Identifiants'),
               Connectionform()
         ]
+    )
     )
     );
   }
