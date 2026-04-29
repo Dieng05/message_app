@@ -16,7 +16,7 @@ class _RegisterformState extends State<Registerform> {
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 10),
               child: TextField(
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
@@ -27,7 +27,7 @@ class _RegisterformState extends State<Registerform> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 10),
               child: TextField(
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
@@ -38,7 +38,7 @@ class _RegisterformState extends State<Registerform> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 10),
               child: TextField(
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
@@ -49,7 +49,7 @@ class _RegisterformState extends State<Registerform> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 10),
               child: TextField(
                 obscureText: true,
                 keyboardType: TextInputType.visiblePassword,
@@ -61,7 +61,7 @@ class _RegisterformState extends State<Registerform> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 10),
               child: TextField(
                 obscureText: true,
                 keyboardType: TextInputType.visiblePassword,
@@ -72,18 +72,18 @@ class _RegisterformState extends State<Registerform> {
                 ),
               ),
             ),
-
+            SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[300],
                 foregroundColor: Colors.white,
-                minimumSize: Size(320, 50),
+                minimumSize: Size(300, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
               onPressed: () {},
-              child: Text('Créer le Compte', style: TextStyle(fontSize: 20)),
+              child: Text('Créer le Compte', style: TextStyle(fontSize: 15)),
             ),
             SizedBox(height: 20),
             TextButton(

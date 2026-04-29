@@ -19,13 +19,13 @@ class _UserregisterState extends State<Userregister> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(height: 100),
+            SizedBox(height: 80),
             Center(
               child: Text(
                 'Créer Un Compte',
                 style: TextStyle(
                   color: Colors.red,
-                  fontSize: 40,
+                  fontSize: 35,
                   fontWeight: FontWeight.bold,
                 ),
               ),

@@ -15,7 +15,7 @@ class _ConnectionformState extends State<Connectionform> {
       child: Column(
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: TextField(
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
@@ -26,7 +26,7 @@ class _ConnectionformState extends State<Connectionform> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: TextField(
               obscureText: true,
               keyboardType: TextInputType.visiblePassword,
