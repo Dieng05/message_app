@@ -2,17 +2,17 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class Sqldb {
-static Database?_database;
+  static Database?_database;
 
-Future<Database?> get database async{
-if(_database==null){
-_database = await initialisation();
-return _database;
-}
-else{
-return _database;
-}
-}
+  Future<Database?> get database async{
+    if(_database==null){
+      _database = await initialisation();
+      return _database;
+    }
+    else{
+      return _database;
+    }
+  }
 
   Future<Database?> initialisation() async {
 

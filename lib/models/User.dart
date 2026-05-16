@@ -5,4 +5,13 @@ class User {
   final String password;
 
   User({required this.firstName,required this.lastName, required this.email, required this.password});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'firstName': firstName,
+      'lastName': lastName,
+      'email': email,
+      'password': password,
+    };
+  }
 }

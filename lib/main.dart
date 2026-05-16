@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:message_app/pages/Acceuil.dart';
 import 'package:message_app/pages/UserConnection.dart';
+import 'package:message_app/pages/UserRegister.dart';
 import 'package:message_app/pages/contact.dart';
+import 'package:sqflite/sqflite.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -17,7 +20,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: Contact()
+      home: Acceuil(),
+      routes: {
+        '/userconnection': (context) => Userconnection(),
+        '/contact': (context) => Contact(),
+        '/userregister': (context) => Userregister(),
+      },
     );
   }
 }
