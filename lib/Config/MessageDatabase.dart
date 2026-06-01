@@ -3,8 +3,8 @@ import 'package:sqflite/sqflite.dart';
 
 import '../models/User.dart';
 
-class MessageDatabaseService {
-  static final MessageDatabaseService instance = MessageDatabaseService._init();
+class MessageDatabase {
+  static final MessageDatabase instance = MessageDatabase._init();
   static Database? _mydatabase;
 
   Future<Database> get database async {
@@ -14,7 +14,7 @@ class MessageDatabaseService {
     return await _initDatabase("message.db");
   }
 
-  MessageDatabaseService._init();
+  MessageDatabase._init();
 
   Future<Database> _initDatabase(String filePath) async {
     final dbPath = await getDatabasesPath();
@@ -65,11 +65,6 @@ class MessageDatabaseService {
     );
   }
 
-  Future<void> deleteUser(String email) async {
-    final db = await instance.database;
-    await db.delete("users", where: "email = ?", whereArgs: [email]);
-  }
-
   Future<List<User>> getAllUsers() async {
     final db = await instance.database;
     final maps = await db.query("users");
@@ -99,10 +94,5 @@ class MessageDatabaseService {
   Future<void> deleteUserByEmail(String email) async {
     final db = await instance.database;
     await db.delete("users", where: "email = ?", whereArgs: [email]);
-  }
-
-  Future<void> close() async {
-    final db = await instance.database;
-    db.close();
   }
 }

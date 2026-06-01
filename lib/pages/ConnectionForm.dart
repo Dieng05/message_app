@@ -1,7 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import '../services/MessageDatabaseService.dart';
+import 'package:message_app/Config/ElementUtiles.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/ServiceConnection.dart';
 
 class Connectionform extends StatefulWidget {
   const Connectionform({super.key});
@@ -11,8 +11,9 @@ class Connectionform extends StatefulWidget {
 }
 
 class _ConnectionformState extends State<Connectionform> {
-  final emailController = TextEditingController();
+  final emailController    = TextEditingController();
   final passwordController = TextEditingController();
+  final _service           = ServiceConnection();
 
   @override
   Widget build(BuildContext context) {
@@ -20,34 +21,33 @@ class _ConnectionformState extends State<Connectionform> {
       child: Column(
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: TextField(
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Email',
+                border: const OutlineInputBorder(),
+                labelText: '${email}',
                 hintText: 'Entrez votre email',
               ),
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: TextField(
               controller: passwordController,
               obscureText: true,
               keyboardType: TextInputType.visiblePassword,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Password',
                 hintText: 'Entrez votre password',
               ),
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           TextButton(
-            onPressed: () async {
-            },
+            onPressed: () async {},
             child: Text(
               'Mot de passe Oublié ?',
               style: TextStyle(color: Colors.red[300]),
@@ -57,31 +57,43 @@ class _ConnectionformState extends State<Connectionform> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red[300],
               foregroundColor: Colors.white,
-              minimumSize: Size(320, 50),
+              minimumSize: const Size(320, 50),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            onPressed: () async{
-              MessageDatabaseService.instance.verifyUser(emailController.text, passwordController.text);
-              if (await MessageDatabaseService.instance.verifyUser(emailController.text, passwordController.text)) {
-              Navigator.pushNamed(context, '/contact');
+            onPressed: () async {
+              final email    = emailController.text.trim();
+              final password = passwordController.text.trim();
+
+              final isValid = await _service.verifyUser(email, password);
+
+              if (isValid) {
+                // ✅ Sauvegarder l'email du user connecté
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString('connected_user_email', email);
+
+                if (context.mounted) {
+                  Navigator.pushNamed(context, '/contact');
+                }
               } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-              content: Text('Email ou mot de passe incorrect'),
-              ),
-              );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Email ou mot de passe incorrect'),
+                    ),
+                  );
+                }
               }
             },
-            child: Text('Se Connecter', style: TextStyle(fontSize: 20)),
+            child: const Text('Se Connecter', style: TextStyle(fontSize: 20)),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           TextButton(
             onPressed: () {
               Navigator.pushNamed(context, '/userregister');
             },
-            child: Text('Créer un nouveau Compte'),
+            child: const Text('Créer un nouveau Compte'),
           ),
         ],
       ),

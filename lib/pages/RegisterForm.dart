@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:message_app/services/MessageDatabaseService.dart';
+import 'package:message_app/services/ServiceConnection.dart';
 
 import '../models/User.dart';
 
@@ -12,10 +12,13 @@ class Registerform extends StatefulWidget {
 }
 
 class _RegisterformState extends State<Registerform> {
+
+  final _service = ServiceConnection();
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final passwordVerify = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +78,7 @@ class _RegisterformState extends State<Registerform> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 35, vertical: 10),
               child: TextField(
-                controller: passwordController,
+                controller: passwordVerify,
                 obscureText: true,
                 keyboardType: TextInputType.visiblePassword,
                 decoration: InputDecoration(
@@ -96,7 +99,15 @@ class _RegisterformState extends State<Registerform> {
                 ),
               ),
               onPressed: () {
-                MessageDatabaseService.instance.insertUser(User(firstName: firstNameController.text, lastName: lastNameController.text, email: emailController.text, password: passwordController.text));
+                if (passwordController.text != passwordVerify.text) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Les mots de passe ne correspondent pas'),
+                    ),
+                  );
+                  return;
+                }
+                _service.insertUser(User(firstName: firstNameController.text, lastName: lastNameController.text, email: emailController.text, password: passwordController.text));
                 Navigator.pushNamed(context, '/userconnection');
               },
               child: Text('Créer le Compte', style: TextStyle(fontSize: 15)),

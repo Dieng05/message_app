@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:message_app/pages/Acceuil.dart';
 import 'package:message_app/pages/UserConnection.dart';
+import 'package:message_app/pages/UserProfil.dart';
 import 'package:message_app/pages/UserRegister.dart';
 import 'package:message_app/pages/contact.dart';
 import 'package:sqflite/sqflite.dart';
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
         '/userconnection': (context) => Userconnection(),
         '/contact': (context) => Contact(),
         '/userregister': (context) => Userregister(),
+        '/profil': (context) => Userprofil(),
       },
     );
   }

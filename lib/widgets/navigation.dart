@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../pages/UserProfil.dart';
 import '../pages/contact.dart';
 import '../pages/message.dart';
 
@@ -27,7 +28,7 @@ class BottomNavBar extends StatelessWidget {
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Contact()));
             break;
           case 3:
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Contact()));
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Userprofil()));
             break;
         }
       },
