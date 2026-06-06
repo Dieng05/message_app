@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:message_app/data/initial_data.dart';
 import 'package:message_app/pages/Acceuil.dart';
 import 'package:message_app/pages/UserConnection.dart';
 import 'package:message_app/pages/UserProfil.dart';
 import 'package:message_app/pages/UserRegister.dart';
 import 'package:message_app/pages/contact.dart';
-import 'package:sqflite/sqflite.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await InitialData.seedContacts();
   runApp(const MyApp());
 }
 
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Message App',
       theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: Acceuil(),
       routes: {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../pages/add_contact.dart';
 import '../widgets/contact/list_contact.dart';
 import '../widgets/navigation.dart';
 
@@ -11,7 +12,24 @@ class Contact extends StatefulWidget {
 
 class _ContactState extends State<Contact> {
   final TextEditingController _controller = TextEditingController();
-  int _currentIndex = 2;
+  String _searchQuery = '';
+  int _listKey = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(() {
+      setState(() {
+        _searchQuery = _controller.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,11 +62,22 @@ class _ContactState extends State<Contact> {
 
             const SizedBox(height: 16),
 
-            const Expanded(
-              child: ListContact(),
+            Expanded(
+              child: ListContact(key: ValueKey(_listKey), searchQuery: _searchQuery),
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.red[300],
+        onPressed: () async {
+          final added = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddContact()),
+          );
+          if (added == true) setState(() => _listKey++);
+        },
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 2),
     );

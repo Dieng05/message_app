@@ -46,7 +46,7 @@ class _UserprofilState extends State<Userprofil> {
 
     final email = await _getCurrentUserEmail();
     if (email == null) {
-      if (mounted) Navigator.pushReplacementNamed(context, '/login');
+      if (mounted) Navigator.pushReplacementNamed(context, '/userconnection');
       return;
     }
 
@@ -127,10 +127,8 @@ class _UserprofilState extends State<Userprofil> {
                   backgroundImage:
                   const AssetImage("assets/images/avatar.png"),
                   onBackgroundImageError: (_, __) {},
-                  child: _user!.firstName.isNotEmpty
-                      ? null
-                      : Text(
-                    '${_user!.firstName[0]}${_user!.lastName[0]}'
+                  child: Text(
+                    '${_user!.firstName.isNotEmpty ? _user!.firstName[0] : '?'}${_user!.lastName.isNotEmpty ? _user!.lastName[0] : ''}'
                         .toUpperCase(),
                     style: const TextStyle(
                         fontSize: 22,

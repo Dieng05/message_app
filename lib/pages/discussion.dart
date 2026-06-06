@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../Config/SQLdb.dart';
 import '../models/ContactModel.dart';
 import '../models/MessageModel.dart';
 import '../widgets/discussion/chat_bubble.dart';
@@ -47,13 +48,32 @@ class Discussion extends StatefulWidget {
 class _DiscussionState extends State<Discussion> {
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  late List<Messagemodel> _messages;
+  final Sqldb _sqldb = Sqldb();
+  List<Messagemodel> _messages = [];
 
   @override
   void initState() {
     super.initState();
-    _messages = List.from(widget.initialMessages)
-      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    _loadMessages();
+  }
+
+  Future<void> _loadMessages() async {
+    final rows = await _sqldb.readMessagesByPeer(
+      currentUserId: widget.currentUserId,
+      peerId: widget.contact.phone,
+    );
+    if (mounted) {
+      setState(() {
+        _messages = rows.map((r) => Messagemodel(
+          r['idFrom'] as String,
+          r['idTo'] as String,
+          r['timestamp'] as String,
+          r['content'] as String,
+          r['type'] as int,
+        )).toList();
+      });
+      _scrollToBottom();
+    }
   }
 
   @override
@@ -75,14 +95,19 @@ class _DiscussionState extends State<Discussion> {
     });
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     final text = _inputController.text.trim();
     if (text.isEmpty) return;
 
-    final now = DateTime.now();
-    final timestamp =
-        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} "
-        "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
+    final timestamp = DateTime.now().toIso8601String();
+
+    await _sqldb.insertMessage(
+      idFrom: widget.currentUserId,
+      idTo: widget.contact.phone,
+      timestamp: timestamp,
+      content: text,
+      type: 0,
+    );
 
     setState(() {
       _messages.add(

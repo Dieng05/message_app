@@ -1,25 +1,39 @@
 import 'package:flutter/material.dart';
+import '../../Config/SQLdb.dart';
 import '../../models/ContactModel.dart';
 import '../../pages/discussion.dart';
 
 class ListContact extends StatefulWidget {
-  const ListContact({super.key});
+  final String searchQuery;
+  const ListContact({super.key, this.searchQuery = ''});
 
   @override
   State<ListContact> createState() => _ListContactState();
 }
 
 class _ListContactState extends State<ListContact> {
-  final List<ContactModel> _contacts = const [
-    ContactModel(name: 'Lena Martin',  phone: '+33 6 12 34 56 78'),
-    ContactModel(name: 'Safia Benali', phone: '+33 6 98 76 54 32'),
-    ContactModel(name: 'Jean Dupont',  phone: '+33 6 55 44 33 22'),
-    ContactModel(name: 'Marie Curie',  phone: '+33 6 11 22 33 44'),
-    ContactModel(name: 'Paul Bernard', phone: '+33 6 77 88 99 00'),
-    ContactModel(name: 'Alice Morel',  phone: '+33 6 33 44 55 66'),
-    ContactModel(name: 'Lucas Petit',  phone: '+33 6 22 11 00 99'),
-    ContactModel(name: 'Emma Leroy',   phone: '+33 6 44 55 66 77'),
-  ];
+  final Sqldb _sqldb = Sqldb();
+  List<ContactModel> _contacts = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadContacts();
+  }
+
+  Future<void> _loadContacts() async {
+    final rows = await _sqldb.readContacts();
+    if (mounted) {
+      setState(() {
+        _contacts = rows.map((r) => ContactModel(
+          name: r['name'] as String,
+          phone: r['phone'] as String,
+        )).toList();
+        _isLoading = false;
+      });
+    }
+  }
 
   void _openDiscussion(BuildContext context, ContactModel contact) {
     Navigator.push(
@@ -32,12 +46,22 @@ class _ListContactState extends State<ListContact> {
 
   @override
   Widget build(BuildContext context) {
+    final filtered = widget.searchQuery.isEmpty
+        ? _contacts
+        : _contacts.where((c) =>
+            c.name.toLowerCase().contains(widget.searchQuery.toLowerCase()) ||
+            c.phone.contains(widget.searchQuery)).toList();
+
     final Map<String, List<ContactModel>> grouped = {};
-    for (final contact in _contacts) {
+    for (final contact in filtered) {
       final letter = contact.name[0].toUpperCase();
       grouped.putIfAbsent(letter, () => []).add(contact);
     }
     final sortedKeys = grouped.keys.toList()..sort();
+
+    if (filtered.isEmpty) {
+      return const Center(child: Text("Aucun contact trouvé"));
+    }
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 4),
