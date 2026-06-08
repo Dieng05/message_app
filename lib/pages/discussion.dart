@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../Config/SQLdb.dart';
+import '../Config/SessionManager.dart';
 import '../models/ContactModel.dart';
 import '../models/MessageModel.dart';
 import '../widgets/discussion/chat_bubble.dart';
@@ -50,6 +51,7 @@ class _DiscussionState extends State<Discussion> {
   final ScrollController _scrollController = ScrollController();
   final Sqldb _sqldb = Sqldb();
   List<Messagemodel> _messages = [];
+  String _currentUserId = '';
 
   @override
   void initState() {
@@ -58,8 +60,12 @@ class _DiscussionState extends State<Discussion> {
   }
 
   Future<void> _loadMessages() async {
+    _currentUserId = widget.currentUserId.isNotEmpty
+        ? widget.currentUserId
+        : (await SessionManager.getCurrentUserEmail() ?? '');
+
     final rows = await _sqldb.readMessagesByPeer(
-      currentUserId: widget.currentUserId,
+      currentUserId: _currentUserId,
       peerId: widget.contact.phone,
     );
     if (mounted) {
@@ -102,7 +108,7 @@ class _DiscussionState extends State<Discussion> {
     final timestamp = DateTime.now().toIso8601String();
 
     await _sqldb.insertMessage(
-      idFrom: widget.currentUserId,
+      idFrom: _currentUserId,
       idTo: widget.contact.phone,
       timestamp: timestamp,
       content: text,
@@ -111,7 +117,7 @@ class _DiscussionState extends State<Discussion> {
 
     setState(() {
       _messages.add(
-        Messagemodel(widget.currentUserId, widget.contact.phone, timestamp, text, 0),
+        Messagemodel(_currentUserId, widget.contact.phone, timestamp, text, 0),
       );
     });
 
@@ -166,7 +172,7 @@ class _DiscussionState extends State<Discussion> {
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final msg = _messages[index];
-                final isMine = msg.idFrom == widget.currentUserId;
+                final isMine = msg.idFrom == _currentUserId;
                 return ChatBubble(
                   message: msg,
                   isMine: isMine,

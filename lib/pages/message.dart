@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../Config/SQLdb.dart';
+import '../Config/SessionManager.dart';
 import '../models/ContactModel.dart';
 import '../models/MessageModel.dart';
 import '../widgets/navigation.dart';
@@ -6,36 +8,6 @@ import '../widgets/message/contact_story_item.dart';
 import '../widgets/message/conversation_tile.dart';
 import '../widgets/message/message_search_bar.dart';
 import '../pages/discussion.dart';
-
-final List<ContactModel> _contacts = [
-  const ContactModel(name: "Siaka Dosso", phone: "0601020304"),
-  const ContactModel(name: "Lena Dupont", phone: "0602030405"),
-  const ContactModel(name: "Safia Amara", phone: "0603040506"),
-  const ContactModel(name: "Jean Martin", phone: "0604050607"),
-];
-
-const Map<String, int> _contactIndexById = {
-  "user_0": 0,
-  "user_1": 1,
-  "user_2": 2,
-  "user_3": 3,
-};
-
-const String _currentUserId = "me";
-
-final List<Messagemodel> _allMessages = [
-  Messagemodel("user_0", _currentUserId, "2025-05-02 10:45", "Tes disponible ce soir ?", 0),
-  Messagemodel(_currentUserId, "user_0", "2025-05-02 10:30", "Ouais dis moi", 0),
-  Messagemodel("user_1", _currentUserId, "2025-05-02 09:30", "On se voit demain ?", 0),
-  Messagemodel(_currentUserId, "user_1", "2025-05-02 09:00", "Avec plaisir !", 0),
-  Messagemodel("user_2", _currentUserId, "2025-05-02 08:15", "Merci pour tout !", 0),
-  Messagemodel(_currentUserId, "user_3", "2025-05-01 18:00", "C'est bon pour moi", 0),
-  Messagemodel("user_3", _currentUserId, "2025-05-01 17:45", "T'es dispo lundi ?", 0),
-];
-
-
-String _peerId(Messagemodel msg) =>
-    msg.idFrom == _currentUserId ? msg.idTo : msg.idFrom;
 
 String _formatTime(String timestamp) {
   try {
@@ -57,38 +29,6 @@ String _formatTime(String timestamp) {
   }
 }
 
-List<Messagemodel> _messagesForPeer(String peerId) {
-  return _allMessages.where((m) => _peerId(m) == peerId).toList();
-}
-
-String? _peerIdForContact(ContactModel contact) {
-  final entry = _contactIndexById.entries.where(
-        (e) => _contacts[e.value] == contact,
-  );
-  return entry.isEmpty ? null : entry.first.key;
-}
-
-List<({ContactModel contact, Messagemodel lastMsg})> _buildConversations() {
-  final Map<String, List<Messagemodel>> byPeer = {};
-  for (final msg in _allMessages) {
-    final peer = _peerId(msg);
-    byPeer.putIfAbsent(peer, () => []).add(msg);
-  }
-
-  final conversations = byPeer.entries.map((entry) {
-    final peer = entry.key;
-    final msgs = entry.value
-      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    final contactIndex = _contactIndexById[peer];
-    if (contactIndex == null) return null;
-    return (contact: _contacts[contactIndex], lastMsg: msgs.first);
-  }).whereType<({ContactModel contact, Messagemodel lastMsg})>().toList();
-
-  conversations.sort((a, b) => b.lastMsg.timestamp.compareTo(a.lastMsg.timestamp));
-  return conversations;
-}
-
-
 class Message extends StatefulWidget {
   const Message({super.key});
 
@@ -97,15 +37,18 @@ class Message extends StatefulWidget {
 }
 
 class _MessageState extends State<Message> {
+  final Sqldb _sqldb = Sqldb();
   final TextEditingController _searchController = TextEditingController();
-  late List<({ContactModel contact, Messagemodel lastMsg})> _conversations;
+
+  String _currentUserId = '';
+  List<ContactModel> _contacts = [];
+  List<({ContactModel contact, Messagemodel lastMsg})> _conversations = [];
   List<({ContactModel contact, Messagemodel lastMsg})> _filtered = [];
 
   @override
   void initState() {
     super.initState();
-    _conversations = _buildConversations();
-    _filtered = _conversations;
+    _load();
     _searchController.addListener(_onSearch);
   }
 
@@ -115,29 +58,74 @@ class _MessageState extends State<Message> {
     super.dispose();
   }
 
+  Future<void> _load() async {
+    final email = await SessionManager.getCurrentUserEmail() ?? '';
+
+    final contactRows = await _sqldb.readContacts(ownerEmail: email);
+    final contacts = contactRows.map((r) => ContactModel(
+      name: r['name'] as String,
+      phone: r['phone'] as String,
+    )).toList();
+
+    final Map<String, ContactModel> phoneToContact = {
+      for (final c in contacts) c.phone: c,
+    };
+
+    final msgRows = await _sqldb.readAllMessages(currentUserId: email);
+
+    // Grouper par peer, garder le message le plus récent (déjà trié DESC)
+    final Map<String, Messagemodel> lastMsgByPeer = {};
+    for (final r in msgRows) {
+      final idFrom = r['idFrom'] as String;
+      final idTo   = r['idTo'] as String;
+      final peerId = idFrom == email ? idTo : idFrom;
+      if (!lastMsgByPeer.containsKey(peerId)) {
+        lastMsgByPeer[peerId] = Messagemodel(idFrom, idTo, r['timestamp'] as String, r['content'] as String, r['type'] as int);
+      }
+    }
+
+    final conversations = lastMsgByPeer.entries
+        .map((e) {
+          final contact = phoneToContact[e.key];
+          if (contact == null) return null;
+          return (contact: contact, lastMsg: e.value);
+        })
+        .whereType<({ContactModel contact, Messagemodel lastMsg})>()
+        .toList()
+      ..sort((a, b) => b.lastMsg.timestamp.compareTo(a.lastMsg.timestamp));
+
+    if (mounted) {
+      setState(() {
+        _currentUserId = email;
+        _contacts = contacts;
+        _conversations = conversations;
+        _filtered = conversations;
+      });
+    }
+  }
+
   void _onSearch() {
     final query = _searchController.text.toLowerCase();
     setState(() {
       _filtered = query.isEmpty
           ? _conversations
           : _conversations
-          .where((c) => c.contact.name.toLowerCase().contains(query))
-          .toList();
+              .where((c) => c.contact.name.toLowerCase().contains(query))
+              .toList();
     });
   }
 
-  void _openDiscussion(BuildContext context, ContactModel contact) {
-    final peerId = _peerIdForContact(contact);
-    Navigator.push(
+  void _openDiscussion(BuildContext context, ContactModel contact) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => Discussion(
           contact: contact,
-          initialMessages: peerId != null ? _messagesForPeer(peerId) : [],
           currentUserId: _currentUserId,
         ),
       ),
     );
+    _load();
   }
 
   @override
@@ -149,21 +137,20 @@ class _MessageState extends State<Message> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
       ),
-
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           children: [
-
-            SizedBox(
-              height: 90,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _contacts.length,
-                itemBuilder: (context, index) =>
-                    ContactStoryItem(contact: _contacts[index]),
+            if (_contacts.isNotEmpty)
+              SizedBox(
+                height: 90,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _contacts.length,
+                  itemBuilder: (context, index) =>
+                      ContactStoryItem(contact: _contacts[index]),
+                ),
               ),
-            ),
 
             const SizedBox(height: 12),
 
@@ -173,25 +160,24 @@ class _MessageState extends State<Message> {
 
             Expanded(
               child: _filtered.isEmpty
-                  ? const Center(child: Text("Aucune conversation trouvée"))
+                  ? const Center(child: Text("Aucune conversation"))
                   : ListView.builder(
-                itemCount: _filtered.length,
-                itemBuilder: (context, index) {
-                  final conv = _filtered[index];
-                  return ConversationTile(
-                    contact: conv.contact,
-                    lastMsg: conv.lastMsg,
-                    currentUserId: _currentUserId,
-                    formattedTime: _formatTime(conv.lastMsg.timestamp),
-                    onTap: () => _openDiscussion(context, conv.contact),
-                  );
-                },
-              ),
+                      itemCount: _filtered.length,
+                      itemBuilder: (context, index) {
+                        final conv = _filtered[index];
+                        return ConversationTile(
+                          contact: conv.contact,
+                          lastMsg: conv.lastMsg,
+                          currentUserId: _currentUserId,
+                          formattedTime: _formatTime(conv.lastMsg.timestamp),
+                          onTap: () => _openDiscussion(context, conv.contact),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
       ),
-
       bottomNavigationBar: const BottomNavBar(currentIndex: 1),
     );
   }

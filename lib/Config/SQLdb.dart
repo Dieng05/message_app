@@ -26,7 +26,7 @@ static Database?_database;
 
     String path = join(db_path, "message_app.db");
 
-    Database mydb = await openDatabase(path, onCreate: _createDB, version: 1);
+    Database mydb = await openDatabase(path, onCreate: _createDB, onUpgrade: _upgradeDB, version: 2);
     return mydb;
   }
 //la fonction pour la création de la base de données
@@ -46,10 +46,18 @@ static Database?_database;
        CREATE TABLE contact(
        id INTEGER PRIMARY KEY AUTOINCREMENT,
        name TEXT NOT NULL,
-       phone TEXT NOT NULL UNIQUE
+       phone TEXT NOT NULL,
+       ownerEmail TEXT NOT NULL,
+       UNIQUE(phone, ownerEmail)
        )''');
 
     print("=== Tables message et contact créées avec succès ===");
+  }
+
+  _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE contact ADD COLUMN ownerEmail TEXT NOT NULL DEFAULT ""');
+    }
   }
 
   // fonction pour l'inserer des données dans la base de données
@@ -123,23 +131,35 @@ static Database?_database;
   Future<int> insertContact({
     required String name,
     required String phone,
+    required String ownerEmail,
   }) async {
     Database? mydb = await database;
     int rep = await mydb!.rawInsert(
-      '''INSERT OR IGNORE INTO contact (name, phone) VALUES (?, ?)''',
-      [name, phone],
+      '''INSERT OR IGNORE INTO contact (name, phone, ownerEmail) VALUES (?, ?, ?)''',
+      [name, phone, ownerEmail],
     );
     print("Contact inséré : $name");
     return rep;
   }
 
-  // Lire tous les contacts
-  Future<List<Map<String, dynamic>>> readContacts() async {
+  // Lire les contacts d'un utilisateur
+  Future<List<Map<String, dynamic>>> readContacts({required String ownerEmail}) async {
     Database? mydb = await database;
     List<Map<String, dynamic>> rep = await mydb!.rawQuery(
-      '''SELECT * FROM contact ORDER BY name ASC''',
+      '''SELECT * FROM contact WHERE ownerEmail = ? ORDER BY name ASC''',
+      [ownerEmail],
     );
     print("Contacts récupérés : ${rep.length}");
+    return rep;
+  }
+
+  // Tous les messages d'un utilisateur
+  Future<List<Map<String, dynamic>>> readAllMessages({required String currentUserId}) async {
+    Database? mydb = await database;
+    List<Map<String, dynamic>> rep = await mydb!.rawQuery(
+      '''SELECT * FROM message WHERE idFrom = ? OR idTo = ? ORDER BY timestamp DESC''',
+      [currentUserId, currentUserId],
+    );
     return rep;
   }
 
