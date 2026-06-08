@@ -18,9 +18,9 @@ class InitialData {
   ];
 
   // la Fonction est appelée une seule fois au démarrage de l'app
-  static Future<void> seedContacts() async {
+  static Future<void> seedContacts(String ownerEmail) async {
     for (final contact in contacts) {
-      await _sqldb.insertContact(name: contact.name, phone: contact.phone,);
+      await _sqldb.insertContact(name: contact.name, phone: contact.phone, ownerEmail: ownerEmail);
     }
     print("=== Contacts initiaux insérés ===");
   }

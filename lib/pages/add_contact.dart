@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../Config/SQLdb.dart';
+import '../Config/SessionManager.dart';
 
 class AddContact extends StatefulWidget {
   const AddContact({super.key});
@@ -31,7 +32,8 @@ class _AddContactState extends State<AddContact> {
       return;
     }
 
-    await _sqldb.insertContact(name: name, phone: phone);
+    final ownerEmail = await SessionManager.getCurrentUserEmail() ?? '';
+    await _sqldb.insertContact(name: name, phone: phone, ownerEmail: ownerEmail);
 
     if (mounted) Navigator.pop(context, true);
   }

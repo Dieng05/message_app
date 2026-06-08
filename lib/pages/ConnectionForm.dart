@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:message_app/Config/ElementUtiles.dart';
+import 'package:message_app/Config/SessionManager.dart';
+import 'package:message_app/data/initial_data.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/ServiceConnection.dart';
 
@@ -69,9 +71,8 @@ class _ConnectionformState extends State<Connectionform> {
               final isValid = await _service.verifyUser(email, password);
 
               if (isValid) {
-                // ✅ Sauvegarder l'email du user connecté
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setString('connected_user_email', email);
+                await SessionManager.setCurrentUserEmail(email);
+                await InitialData.seedContacts(email);
 
                 if (context.mounted) {
                   Navigator.pushNamed(context, '/contact');

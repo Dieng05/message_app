@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../Config/SQLdb.dart';
+import '../../Config/SessionManager.dart';
 import '../../models/ContactModel.dart';
 import '../../pages/discussion.dart';
 
@@ -15,6 +16,7 @@ class _ListContactState extends State<ListContact> {
   final Sqldb _sqldb = Sqldb();
   List<ContactModel> _contacts = [];
   bool _isLoading = true;
+  String _currentUserEmail = '';
 
   @override
   void initState() {
@@ -23,9 +25,11 @@ class _ListContactState extends State<ListContact> {
   }
 
   Future<void> _loadContacts() async {
-    final rows = await _sqldb.readContacts();
+    final email = await SessionManager.getCurrentUserEmail() ?? '';
+    final rows = await _sqldb.readContacts(ownerEmail: email);
     if (mounted) {
       setState(() {
+        _currentUserEmail = email;
         _contacts = rows.map((r) => ContactModel(
           name: r['name'] as String,
           phone: r['phone'] as String,
@@ -39,7 +43,7 @@ class _ListContactState extends State<ListContact> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => Discussion(contact: contact),
+        builder: (_) => Discussion(contact: contact, currentUserId: _currentUserEmail),
       ),
     );
   }
