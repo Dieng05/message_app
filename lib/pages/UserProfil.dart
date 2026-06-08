@@ -118,7 +118,6 @@ class _UserprofilState extends State<Userprofil> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── En-tête avatar + nom ──────────────────────────────
             Row(
               children: [
                 const SizedBox(width: 10),
