@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../Config/SQLdb.dart';
-import '../Config/SessionManager.dart';
 import '../models/ContactModel.dart';
 import '../models/MessageModel.dart';
 import '../widgets/discussion/chat_bubble.dart';
@@ -28,18 +27,13 @@ String _formatTime(String timestamp) {
 
 
 class Discussion extends StatefulWidget {
-
   final ContactModel contact;
-
-  final List<Messagemodel> initialMessages;
-
   final String currentUserId;
 
   const Discussion({
     super.key,
     required this.contact,
-    this.initialMessages = const [],
-    this.currentUserId = "me",
+    required this.currentUserId,
   });
 
   @override
@@ -49,9 +43,8 @@ class Discussion extends StatefulWidget {
 class _DiscussionState extends State<Discussion> {
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final Sqldb _sqldb = Sqldb();
+  final Sqldb _sqldb = Sqldb.instance;
   List<Messagemodel> _messages = [];
-  String _currentUserId = '';
 
   @override
   void initState() {
@@ -60,21 +53,17 @@ class _DiscussionState extends State<Discussion> {
   }
 
   Future<void> _loadMessages() async {
-    _currentUserId = widget.currentUserId.isNotEmpty
-        ? widget.currentUserId
-        : (await SessionManager.getCurrentUserEmail() ?? '');
-
     final rows = await _sqldb.readMessagesByPeer(
-      currentUserId: _currentUserId,
+      currentUserId: widget.currentUserId,
       peerId: widget.contact.phone,
     );
     if (mounted) {
       setState(() {
         _messages = rows.map((r) => Messagemodel(
-          r['idFrom'] as String,
-          r['idTo'] as String,
-          r['timestamp'] as String,
-          r['content'] as String,
+          r['idFrom'].toString(),
+          r['idTo'].toString(),
+          r['timestamp'].toString(),
+          r['content'].toString(),
           r['type'] as int,
         )).toList();
       });
@@ -107,22 +96,23 @@ class _DiscussionState extends State<Discussion> {
 
     final timestamp = DateTime.now().toIso8601String();
 
-    await _sqldb.insertMessage(
-      idFrom: _currentUserId,
-      idTo: widget.contact.phone,
-      timestamp: timestamp,
-      content: text,
-      type: 0,
-    );
-
-    setState(() {
-      _messages.add(
-        Messagemodel(_currentUserId, widget.contact.phone, timestamp, text, 0),
+    try {
+      await _sqldb.insertMessage(
+        idFrom: widget.currentUserId,
+        idTo: widget.contact.phone,
+        timestamp: timestamp,
+        content: text,
+        type: 0,
       );
-    });
-
-    _inputController.clear();
-    _scrollToBottom();
+      _inputController.clear();
+      await _loadMessages();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur envoi : $e"), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   @override
@@ -135,7 +125,7 @@ class _DiscussionState extends State<Discussion> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: widget.contact.color.withOpacity(0.15),
+              backgroundColor: widget.contact.color.withValues(alpha: 0.15),
               child: Text(
                 widget.contact.initial,
                 style: TextStyle(
@@ -156,32 +146,29 @@ class _DiscussionState extends State<Discussion> {
 
       body: Column(
         children: [
-
           Expanded(
             child: _messages.isEmpty
                 ? Center(
-              child: Text(
-                "Aucun message",
-                style: TextStyle(color: Colors.grey[400]),
-              ),
-            )
+                    child: Text(
+                      "Aucun message",
+                      style: TextStyle(color: Colors.grey[400]),
+                    ),
+                  )
                 : ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 12),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final msg = _messages[index];
-                final isMine = msg.idFrom == _currentUserId;
-                return ChatBubble(
-                  message: msg,
-                  isMine: isMine,
-                  formattedTime: _formatTime(msg.timestamp),
-                );
-              },
-            ),
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = _messages[index];
+                      final isMine = msg.idFrom == widget.currentUserId;
+                      return ChatBubble(
+                        message: msg,
+                        isMine: isMine,
+                        formattedTime: _formatTime(msg.timestamp),
+                      );
+                    },
+                  ),
           ),
-
 
           ChatInputBar(
             controller: _inputController,

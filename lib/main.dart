@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:message_app/Config/SessionManager.dart';
-import 'package:message_app/data/initial_data.dart';
 import 'package:message_app/pages/Acceuil.dart';
 import 'package:message_app/pages/UserConnection.dart';
 import 'package:message_app/pages/UserProfil.dart';
@@ -9,8 +7,6 @@ import 'package:message_app/pages/contact.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final email = await SessionManager.getCurrentUserEmail();
-  if (email != null) await InitialData.seedContacts(email);
   runApp(const MyApp());
 }
 

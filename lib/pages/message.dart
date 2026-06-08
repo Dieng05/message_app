@@ -37,7 +37,7 @@ class Message extends StatefulWidget {
 }
 
 class _MessageState extends State<Message> {
-  final Sqldb _sqldb = Sqldb();
+  final Sqldb _sqldb = Sqldb.instance;
   final TextEditingController _searchController = TextEditingController();
 
   String _currentUserId = '';
@@ -76,11 +76,11 @@ class _MessageState extends State<Message> {
     // Grouper par peer, garder le message le plus récent (déjà trié DESC)
     final Map<String, Messagemodel> lastMsgByPeer = {};
     for (final r in msgRows) {
-      final idFrom = r['idFrom'] as String;
-      final idTo   = r['idTo'] as String;
+      final idFrom = r['idFrom'].toString();
+      final idTo   = r['idTo'].toString();
       final peerId = idFrom == email ? idTo : idFrom;
       if (!lastMsgByPeer.containsKey(peerId)) {
-        lastMsgByPeer[peerId] = Messagemodel(idFrom, idTo, r['timestamp'] as String, r['content'] as String, r['type'] as int);
+        lastMsgByPeer[peerId] = Messagemodel(idFrom, idTo, r['timestamp'].toString(), r['content'].toString(), r['type'] as int);
       }
     }
 
@@ -119,10 +119,7 @@ class _MessageState extends State<Message> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => Discussion(
-          contact: contact,
-          currentUserId: _currentUserId,
-        ),
+        builder: (_) => Discussion(contact: contact, currentUserId: _currentUserId),
       ),
     );
     _load();

@@ -13,9 +13,8 @@ class ListContact extends StatefulWidget {
 }
 
 class _ListContactState extends State<ListContact> {
-  final Sqldb _sqldb = Sqldb();
+  final Sqldb _sqldb = Sqldb.instance;
   List<ContactModel> _contacts = [];
-  bool _isLoading = true;
   String _currentUserEmail = '';
 
   @override
@@ -34,7 +33,6 @@ class _ListContactState extends State<ListContact> {
           name: r['name'] as String,
           phone: r['phone'] as String,
         )).toList();
-        _isLoading = false;
       });
     }
   }

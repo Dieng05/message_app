@@ -10,7 +10,7 @@ class AddContact extends StatefulWidget {
 }
 
 class _AddContactState extends State<AddContact> {
-  final Sqldb _sqldb = Sqldb();
+  final Sqldb _sqldb = Sqldb.instance;
   final nameController = TextEditingController();
   final phoneController = TextEditingController();
 

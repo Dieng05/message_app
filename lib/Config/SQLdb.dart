@@ -2,43 +2,33 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class Sqldb {
-static Database?_database;
+  static final Sqldb instance = Sqldb._init();
+  static Database? _mydatabase;
 
-// cette fonction permet de recuperer la base de données
-// uture pour dire que la fonction retournera tot ou tard une reponse donc faut juste attendre
-// async dire que la fonctions fait des choses de maniere lente trop lente
-// await pour dire que ça prend du temps mais faut attendre initialiation
+  Sqldb._init();
 
-  Future<Database?> get database async{
-    if(_database==null){
-    _database = await initialisation();
-    return _database;
+  Future<Database> get database async {
+    if (_mydatabase != null) {
+      return _mydatabase!;
     }
-    else{
-    return _database;
-    }
-}
-
-// la fonction qui fait l'initialisation de la base de donnees
-  Future<Database?> initialisation() async {
-
-    String db_path = await getDatabasesPath();
-
-    String path = join(db_path, "message_app.db");
-
-    Database mydb = await openDatabase(path, onCreate: _createDB, onUpgrade: _upgradeDB, version: 2);
-    return mydb;
+    _mydatabase = await _initDatabase("message_app.db");
+    return _mydatabase!;
   }
-//la fonction pour la création de la base de données
-  _createDB(Database db, int version) async {
 
+  Future<Database> _initDatabase(String filePath) async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, filePath);
+    return await openDatabase(path, version: 3, onCreate: _createDB, onUpgrade: _upgradeDB);
+  }
+
+  Future<void> _createDB(Database db, int version) async {
     await db.execute('''
        CREATE TABLE message(
        id INTEGER PRIMARY KEY AUTOINCREMENT,
-       idFrom String NOT NULL,
-       idTo String NOT NULL,
-       timestamp String NOT NULL,
-       content Text NOT NULL,
+       idFrom TEXT NOT NULL,
+       idTo TEXT NOT NULL,
+       timestamp TEXT NOT NULL,
+       content TEXT NOT NULL,
        type INTEGER NOT NULL
        )''');
 
@@ -50,17 +40,26 @@ static Database?_database;
        ownerEmail TEXT NOT NULL,
        UNIQUE(phone, ownerEmail)
        )''');
-
-    print("=== Tables message et contact créées avec succès ===");
   }
 
-  _upgradeDB(Database db, int oldVersion, int newVersion) async {
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute('ALTER TABLE contact ADD COLUMN ownerEmail TEXT NOT NULL DEFAULT ""');
     }
+    if (oldVersion < 3) {
+      await db.execute('DROP TABLE IF EXISTS message');
+      await db.execute('''
+         CREATE TABLE message(
+         id INTEGER PRIMARY KEY AUTOINCREMENT,
+         idFrom TEXT NOT NULL,
+         idTo TEXT NOT NULL,
+         timestamp TEXT NOT NULL,
+         content TEXT NOT NULL,
+         type INTEGER NOT NULL
+         )''');
+    }
   }
 
-  // fonction pour l'inserer des données dans la base de données
   Future<int> insertMessage({
     required String idFrom,
     required String idTo,
@@ -68,110 +67,76 @@ static Database?_database;
     required String content,
     required int type,
   }) async {
-    Database? mydb = await database;
-
-    int rep = await mydb!.rawInsert(
-      '''INSERT INTO message (idFrom, idTo, timestamp, content, type) 
-       VALUES (?, ?, ?, ?, ?)''',
+    final db = await database;
+    return await db.rawInsert(
+      '''INSERT INTO message (idFrom, idTo, timestamp, content, type) VALUES (?, ?, ?, ?, ?)''',
       [idFrom, idTo, timestamp, content, type],
     );
-
-    print("Message inséré avec succès, id: $rep");
-    return rep;
   }
 
-  //fonction pour la modification d'un message ça sera
-  Future<int> updateMessage({
-    required int id,
-    required String content,
-  }) async {
-    Database? mydb = await database;
-
-    int rep = await mydb!.rawUpdate(
+  Future<int> updateMessage({required int id, required String content}) async {
+    final db = await database;
+    return await db.rawUpdate(
       '''UPDATE message SET content = ? WHERE id = ?''',
       [content, id],
     );
-
-    print("Message modifié avec succès");
-    return rep;
   }
 
-  //la fonction pour supprimer un message sera dans ce cas
   Future<int> deleteMessage(int id) async {
-    Database? mydb = await database;
-
-    int rep = await mydb!.rawDelete(
+    final db = await database;
+    return await db.rawDelete(
       '''DELETE FROM message WHERE id = ?''',
       [id],
     );
-    print("Message supprimé avec succès");
-    return rep;
   }
 
-  // fonction pour lire tous les messages
   Future<List<Map<String, dynamic>>> readMessagesByPeer({
     required String currentUserId,
     required String peerId,
   }) async {
-    Database? mydb = await database;
-
-    List<Map<String, dynamic>> rep = await mydb!.rawQuery(
-      '''SELECT * FROM message 
-       WHERE (idFrom = ? AND idTo = ?) 
+    final db = await database;
+    return await db.rawQuery(
+      '''SELECT * FROM message
+       WHERE (idFrom = ? AND idTo = ?)
           OR (idFrom = ? AND idTo = ?)
        ORDER BY timestamp ASC''',
       [currentUserId, peerId, peerId, currentUserId],
     );
-    return rep;
   }
 
-  // ============ CONTACT ============
-
-  // Insérer un contact
   Future<int> insertContact({
     required String name,
     required String phone,
     required String ownerEmail,
   }) async {
-    Database? mydb = await database;
-    int rep = await mydb!.rawInsert(
+    final db = await database;
+    return await db.rawInsert(
       '''INSERT OR IGNORE INTO contact (name, phone, ownerEmail) VALUES (?, ?, ?)''',
       [name, phone, ownerEmail],
     );
-    print("Contact inséré : $name");
-    return rep;
   }
 
-  // Lire les contacts d'un utilisateur
   Future<List<Map<String, dynamic>>> readContacts({required String ownerEmail}) async {
-    Database? mydb = await database;
-    List<Map<String, dynamic>> rep = await mydb!.rawQuery(
+    final db = await database;
+    return await db.rawQuery(
       '''SELECT * FROM contact WHERE ownerEmail = ? ORDER BY name ASC''',
       [ownerEmail],
     );
-    print("Contacts récupérés : ${rep.length}");
-    return rep;
   }
 
-  // Tous les messages d'un utilisateur
   Future<List<Map<String, dynamic>>> readAllMessages({required String currentUserId}) async {
-    Database? mydb = await database;
-    List<Map<String, dynamic>> rep = await mydb!.rawQuery(
+    final db = await database;
+    return await db.rawQuery(
       '''SELECT * FROM message WHERE idFrom = ? OR idTo = ? ORDER BY timestamp DESC''',
       [currentUserId, currentUserId],
     );
-    return rep;
   }
 
-  // Supprimer un contact
   Future<int> deleteContact(int id) async {
-    Database? mydb = await database;
-    int rep = await mydb!.rawDelete(
+    final db = await database;
+    return await db.rawDelete(
       '''DELETE FROM contact WHERE id = ?''',
       [id],
     );
-    print("Contact supprimé");
-    return rep;
   }
-
-  }
+}

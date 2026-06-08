@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:message_app/Config/ElementUtiles.dart';
 import 'package:message_app/Config/SessionManager.dart';
-import 'package:message_app/data/initial_data.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../services/ServiceConnection.dart';
 
 class Connectionform extends StatefulWidget {
@@ -72,7 +70,6 @@ class _ConnectionformState extends State<Connectionform> {
 
               if (isValid) {
                 await SessionManager.setCurrentUserEmail(email);
-                await InitialData.seedContacts(email);
 
                 if (context.mounted) {
                   Navigator.pushNamed(context, '/contact');
