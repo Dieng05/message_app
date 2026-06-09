@@ -6,6 +6,7 @@ import 'package:message_app/pages/UserConnection.dart';
 import 'package:message_app/pages/UserProfil.dart';
 import 'package:message_app/pages/UserRegister.dart';
 import 'package:message_app/pages/contact.dart';
+import 'package:message_app/pages/message.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
       home: Acceuil(),
       routes: {
         '/userconnection': (context) => Userconnection(),
+        '/message': (context) => const Message(),
         '/contact': (context) => Contact(),
         '/userregister': (context) => Userregister(),
         '/profil': (context) => Userprofil(),

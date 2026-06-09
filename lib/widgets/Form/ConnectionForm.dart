@@ -38,7 +38,7 @@ class _ConnectionformState extends State<Connectionform> {
       final user = await _service.verifyUser(email, password);
 
       if (user != null && context.mounted) {
-        Navigator.pushNamed(context, '/contact');
+        Navigator.pushNamedAndRemoveUntil(context, '/message', (_) => false);
       }
     } catch (e) {
       if (context.mounted) {

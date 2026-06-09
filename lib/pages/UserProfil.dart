@@ -275,7 +275,7 @@ class _UserprofilState extends State<Userprofil> {
         ),
       ),
 
-      bottomNavigationBar: BottomNavBar(currentIndex: 3),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 2),
     );
   }
 }

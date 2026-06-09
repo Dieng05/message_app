@@ -79,7 +79,7 @@ class _ContactState extends State<Contact> {
         },
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      bottomNavigationBar: const BottomNavBar(currentIndex: 2),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 1),
     );
   }
 }

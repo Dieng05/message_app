@@ -187,7 +187,7 @@ class _MessageState extends State<Message> {
           ],
         ),
       ),
-      bottomNavigationBar: const BottomNavBar(currentIndex: 1),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 0),
     );
   }
 }
