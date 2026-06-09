@@ -38,6 +38,7 @@ class Sqldb {
        name TEXT NOT NULL,
        phone TEXT NOT NULL,
        ownerEmail TEXT NOT NULL,
+       userId TEXT NOT NULL,
        UNIQUE(phone, ownerEmail)
        )''');
   }
@@ -57,6 +58,9 @@ class Sqldb {
          content TEXT NOT NULL,
          type INTEGER NOT NULL
          )''');
+    }
+    if (oldVersion < 4) {
+      await db.execute('ALTER TABLE contact ADD COLUMN userId TEXT');
     }
   }
 
@@ -111,7 +115,7 @@ class Sqldb {
   }) async {
     final db = await database;
     return await db.rawInsert(
-      '''INSERT OR IGNORE INTO contact (name, phone, ownerEmail) VALUES (?, ?, ?)''',
+      '''INSERT OR IGNORE INTO contact (name, phone, ownerEmail,userId,) VALUES (?, ?, ?,?)''',
       [name, phone, ownerEmail],
     );
   }
