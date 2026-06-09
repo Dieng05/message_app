@@ -8,6 +8,8 @@ class ConversationTile extends StatelessWidget {
   final String currentUserId;
   final String formattedTime;
   final VoidCallback? onTap;
+  final bool isUnknown;
+  final VoidCallback? onAddContact;
 
   const ConversationTile({
     super.key,
@@ -16,6 +18,8 @@ class ConversationTile extends StatelessWidget {
     required this.currentUserId,
     required this.formattedTime,
     this.onTap,
+    this.isUnknown = false,
+    this.onAddContact,
   });
 
   @override
@@ -58,10 +62,25 @@ class ConversationTile extends StatelessWidget {
         style: TextStyle(color: Colors.grey[900]),
       ),
 
-      trailing: Text(
-        formattedTime,
-        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-      ),
+      trailing: isUnknown
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  formattedTime,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                ),
+                GestureDetector(
+                  onTap: onAddContact,
+                  child: Icon(Icons.person_add_outlined,
+                      size: 20, color: Colors.red[300]),
+                ),
+              ],
+            )
+          : Text(
+              formattedTime,
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            ),
 
       onTap: onTap,
     );

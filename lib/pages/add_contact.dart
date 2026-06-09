@@ -4,7 +4,9 @@ import '../services/ContactService.dart';
 import '../services/ServiceConnection.dart';
 
 class AddContact extends StatefulWidget {
-  const AddContact({super.key});
+  final String? initialEmail;
+
+  const AddContact({super.key, this.initialEmail});
 
   @override
   State<AddContact> createState() => _AddContactState();
@@ -15,6 +17,16 @@ class _AddContactState extends State<AddContact> {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   bool _isLoading = false;
+
+  bool get _emailLocked => widget.initialEmail != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialEmail != null) {
+      emailController.text = widget.initialEmail!;
+    }
+  }
 
   @override
   void dispose() {
@@ -46,18 +58,19 @@ class _AddContactState extends State<AddContact> {
     setState(() => _isLoading = true);
 
     try {
-      final user = await _service.getUserByEmail(email);
-
-      if (user == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Aucun compte trouvé avec cet email'),
-              backgroundColor: Colors.orange,
-            ),
-          );
+      if (!_emailLocked) {
+        final user = await _service.getUserByEmail(email);
+        if (user == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Aucun compte trouvé avec cet email'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          return;
         }
-        return;
       }
 
       await ContactService.instance.saveContact(
@@ -91,6 +104,7 @@ class _AddContactState extends State<AddContact> {
                 padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 10),
                 child: TextField(
                   controller: nameController,
+                  autofocus: _emailLocked,
                   keyboardType: TextInputType.text,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
@@ -103,11 +117,17 @@ class _AddContactState extends State<AddContact> {
                 padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 10),
                 child: TextField(
                   controller: emailController,
+                  readOnly: _emailLocked,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
                     labelText: 'Email',
                     hintText: "Email du contact sur l'application",
+                    filled: _emailLocked,
+                    fillColor: _emailLocked ? Colors.grey[100] : null,
+                    suffixIcon: _emailLocked
+                        ? const Icon(Icons.lock_outline, size: 18)
+                        : null,
                   ),
                 ),
               ),

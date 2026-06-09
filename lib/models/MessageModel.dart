@@ -1,4 +1,3 @@
-
 class Messagemodel {
   final String idFrom;
   final String idTo;

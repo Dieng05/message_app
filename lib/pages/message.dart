@@ -7,10 +7,10 @@ import '../models/MessageModel.dart';
 import '../services/ChatService.dart';
 import '../services/ContactService.dart';
 import '../widgets/navigation.dart';
-import '../widgets/message/contact_story_item.dart';
 import '../widgets/message/conversation_tile.dart';
 import '../widgets/message/message_search_bar.dart';
 import '../pages/discussion.dart';
+import '../pages/add_contact.dart';
 
 String _formatTime(Timestamp? ts) {
   if (ts == null) return '';
@@ -95,17 +95,6 @@ class _MessageState extends State<Message> {
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           children: [
-            if (_contactByEmail.isNotEmpty)
-              SizedBox(
-                height: 90,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: _contactByEmail.values
-                      .map((c) => ContactStoryItem(contact: c))
-                      .toList(),
-                ),
-              ),
-
             const SizedBox(height: 12),
             MessageSearchBar(controller: _searchController),
             const SizedBox(height: 12),
@@ -131,6 +120,7 @@ class _MessageState extends State<Message> {
                         );
                         if (peerEmail.isEmpty) return null;
 
+                        final isUnknown = !_contactByEmail.containsKey(peerEmail);
                         final contact = _contactByEmail[peerEmail] ??
                             ContactModel(name: peerEmail, email: peerEmail);
 
@@ -143,13 +133,14 @@ class _MessageState extends State<Message> {
                           0,
                         );
 
-                        return (contact: contact, lastMsg: lastMsg, ts: ts);
+                        return (contact: contact, lastMsg: lastMsg, ts: ts, isUnknown: isUnknown);
                       })
                       .whereType<
                           ({
                             ContactModel contact,
                             Messagemodel lastMsg,
-                            Timestamp? ts
+                            Timestamp? ts,
+                            bool isUnknown
                           })>()
                       .where((c) =>
                           _searchQuery.isEmpty ||
@@ -175,6 +166,17 @@ class _MessageState extends State<Message> {
                         lastMsg: conv.lastMsg,
                         currentUserId: _currentUserId,
                         formattedTime: _formatTime(conv.ts),
+                        isUnknown: conv.isUnknown,
+                        onAddContact: conv.isUnknown
+                            ? () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => AddContact(
+                                      initialEmail: conv.contact.email,
+                                    ),
+                                  ),
+                                )
+                            : null,
                         onTap: () => _openDiscussion(context, conv.contact),
                       );
                     },

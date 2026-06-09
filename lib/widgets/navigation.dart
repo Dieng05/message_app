@@ -19,15 +19,12 @@ class BottomNavBar extends StatelessWidget {
         if (index == currentIndex) return;
         switch (index) {
           case 0:
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Contact()));
-            break;
-          case 1:
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Message()));
             break;
-          case 2:
+          case 1:
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Contact()));
             break;
-          case 3:
+          case 2:
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Userprofil()));
             break;
         }
@@ -35,11 +32,6 @@ class BottomNavBar extends StatelessWidget {
       indicatorColor: Colors.red[300],
       selectedIndex: currentIndex,
       destinations: const <Widget>[
-        NavigationDestination(
-          selectedIcon: Icon(Icons.home),
-          icon: Icon(Icons.home_outlined),
-          label: 'Home',
-        ),
         NavigationDestination(
           icon: Icon(Icons.message),
           label: 'Messages',
