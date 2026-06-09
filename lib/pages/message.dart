@@ -1,23 +1,29 @@
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../Config/SQLdb.dart';
-import '../Config/SessionManager.dart';
 import '../models/ContactModel.dart';
 import '../models/MessageModel.dart';
+import '../services/ChatService.dart';
+import '../services/ContactService.dart';
 import '../widgets/navigation.dart';
 import '../widgets/message/contact_story_item.dart';
 import '../widgets/message/conversation_tile.dart';
 import '../widgets/message/message_search_bar.dart';
 import '../pages/discussion.dart';
 
-String _formatTime(String timestamp) {
+String _formatTime(Timestamp? ts) {
+  if (ts == null) return '';
   try {
-    final dt = DateTime.parse(timestamp);
+    final dt = ts.toDate();
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final msgDay = DateTime(dt.year, dt.month, dt.day);
     final diff = today.difference(msgDay).inDays;
 
-    if (diff == 0) return "${dt.hour.toString().padLeft(2, '0')}h${dt.minute.toString().padLeft(2, '0')}";
+    if (diff == 0) {
+      return "${dt.hour.toString().padLeft(2, '0')}h${dt.minute.toString().padLeft(2, '0')}";
+    }
     if (diff == 1) return "Hier";
     if (diff < 7) {
       const days = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
@@ -25,7 +31,7 @@ String _formatTime(String timestamp) {
     }
     return "${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}";
   } catch (_) {
-    return timestamp;
+    return '';
   }
 }
 
@@ -37,92 +43,43 @@ class Message extends StatefulWidget {
 }
 
 class _MessageState extends State<Message> {
-  final Sqldb _sqldb = Sqldb.instance;
   final TextEditingController _searchController = TextEditingController();
+  StreamSubscription<List<ContactModel>>? _contactsSub;
 
-  String _currentUserId = '';
-  List<ContactModel> _contacts = [];
-  List<({ContactModel contact, Messagemodel lastMsg})> _conversations = [];
-  List<({ContactModel contact, Messagemodel lastMsg})> _filtered = [];
+  late final String _currentUserId;
+  Map<String, ContactModel> _contactByEmail = {};
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _load();
-    _searchController.addListener(_onSearch);
+    _currentUserId = FirebaseAuth.instance.currentUser?.email ?? '';
+    _contactsSub = ContactService.instance
+        .contactsStream(_currentUserId)
+        .listen((contacts) {
+      if (mounted) {
+        setState(() {
+          _contactByEmail = {for (final c in contacts) c.email: c};
+        });
+      }
+    });
+    _searchController.addListener(
+      () => setState(() => _searchQuery = _searchController.text.toLowerCase()),
+    );
   }
 
   @override
   void dispose() {
+    _contactsSub?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _load() async {
-    final email = await SessionManager.getCurrentUserEmail() ?? '';
-
-    final contactRows = await _sqldb.readContacts(ownerEmail: email);
-    final contacts = contactRows.map((r) => ContactModel(
-      name: r['name'] as String,
-      phone: r['phone'] as String,
-    )).toList();
-
-    final Map<String, ContactModel> phoneToContact = {
-      for (final c in contacts) c.phone: c,
-    };
-
-    final msgRows = await _sqldb.readAllMessages(currentUserId: email);
-
-    // Grouper par peer, garder le message le plus récent (déjà trié DESC)
-    final Map<String, Messagemodel> lastMsgByPeer = {};
-    for (final r in msgRows) {
-      final idFrom = r['idFrom'].toString();
-      final idTo   = r['idTo'].toString();
-      final peerId = idFrom == email ? idTo : idFrom;
-      if (!lastMsgByPeer.containsKey(peerId)) {
-        lastMsgByPeer[peerId] = Messagemodel(idFrom, idTo, r['timestamp'].toString(), r['content'].toString(), r['type'] as int);
-      }
-    }
-
-    final conversations = lastMsgByPeer.entries
-        .map((e) {
-          final contact = phoneToContact[e.key];
-          if (contact == null) return null;
-          return (contact: contact, lastMsg: e.value);
-        })
-        .whereType<({ContactModel contact, Messagemodel lastMsg})>()
-        .toList()
-      ..sort((a, b) => b.lastMsg.timestamp.compareTo(a.lastMsg.timestamp));
-
-    if (mounted) {
-      setState(() {
-        _currentUserId = email;
-        _contacts = contacts;
-        _conversations = conversations;
-        _filtered = conversations;
-      });
-    }
-  }
-
-  void _onSearch() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _filtered = query.isEmpty
-          ? _conversations
-          : _conversations
-              .where((c) => c.contact.name.toLowerCase().contains(query))
-              .toList();
-    });
-  }
-
-  void _openDiscussion(BuildContext context, ContactModel contact) async {
-    await Navigator.push(
+  void _openDiscussion(BuildContext context, ContactModel contact) {
+    Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => Discussion(contact: contact, currentUserId: _currentUserId),
-      ),
+      MaterialPageRoute(builder: (_) => Discussion(contact: contact)),
     );
-    _load();
   }
 
   @override
@@ -138,39 +95,92 @@ class _MessageState extends State<Message> {
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           children: [
-            if (_contacts.isNotEmpty)
+            if (_contactByEmail.isNotEmpty)
               SizedBox(
                 height: 90,
-                child: ListView.builder(
+                child: ListView(
                   scrollDirection: Axis.horizontal,
-                  itemCount: _contacts.length,
-                  itemBuilder: (context, index) =>
-                      ContactStoryItem(contact: _contacts[index]),
+                  children: _contactByEmail.values
+                      .map((c) => ContactStoryItem(contact: c))
+                      .toList(),
                 ),
               ),
 
             const SizedBox(height: 12),
-
             MessageSearchBar(controller: _searchController),
-
             const SizedBox(height: 12),
 
             Expanded(
-              child: _filtered.isEmpty
-                  ? const Center(child: Text("Aucune conversation"))
-                  : ListView.builder(
-                      itemCount: _filtered.length,
-                      itemBuilder: (context, index) {
-                        final conv = _filtered[index];
-                        return ConversationTile(
-                          contact: conv.contact,
-                          lastMsg: conv.lastMsg,
-                          currentUserId: _currentUserId,
-                          formattedTime: _formatTime(conv.lastMsg.timestamp),
-                          onTap: () => _openDiscussion(context, conv.contact),
+              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: ChatService.instance.conversationsStream(_currentUserId),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final docs = snapshot.data?.docs ?? [];
+
+                  final conversations = docs
+                      .map((doc) {
+                        final data = doc.data();
+                        final participants =
+                            List<String>.from(data['participants'] ?? []);
+                        final peerEmail = participants.firstWhere(
+                          (p) => p != _currentUserId,
+                          orElse: () => '',
                         );
-                      },
-                    ),
+                        if (peerEmail.isEmpty) return null;
+
+                        final contact = _contactByEmail[peerEmail] ??
+                            ContactModel(name: peerEmail, email: peerEmail);
+
+                        final ts = data['lastTimestamp'] as Timestamp?;
+                        final lastMsg = Messagemodel(
+                          data['lastSenderId'] as String? ?? '',
+                          peerEmail,
+                          ts?.toDate().toIso8601String() ?? '',
+                          data['lastMessage'] as String? ?? '',
+                          0,
+                        );
+
+                        return (contact: contact, lastMsg: lastMsg, ts: ts);
+                      })
+                      .whereType<
+                          ({
+                            ContactModel contact,
+                            Messagemodel lastMsg,
+                            Timestamp? ts
+                          })>()
+                      .where((c) =>
+                          _searchQuery.isEmpty ||
+                          c.contact.name.toLowerCase().contains(_searchQuery))
+                      .toList()
+                    ..sort((a, b) {
+                      if (a.ts == null && b.ts == null) return 0;
+                      if (a.ts == null) return 1;
+                      if (b.ts == null) return -1;
+                      return b.ts!.compareTo(a.ts!);
+                    });
+
+                  if (conversations.isEmpty) {
+                    return const Center(child: Text("Aucune conversation"));
+                  }
+
+                  return ListView.builder(
+                    itemCount: conversations.length,
+                    itemBuilder: (context, index) {
+                      final conv = conversations[index];
+                      return ConversationTile(
+                        contact: conv.contact,
+                        lastMsg: conv.lastMsg,
+                        currentUserId: _currentUserId,
+                        formattedTime: _formatTime(conv.ts),
+                        onTap: () => _openDiscussion(context, conv.contact),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),

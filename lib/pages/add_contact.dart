@@ -1,6 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../Config/SQLdb.dart';
-import '../Config/SessionManager.dart';
+import '../services/ContactService.dart';
+import '../services/ServiceConnection.dart';
 
 class AddContact extends StatefulWidget {
   const AddContact({super.key});
@@ -10,32 +11,71 @@ class AddContact extends StatefulWidget {
 }
 
 class _AddContactState extends State<AddContact> {
-  final Sqldb _sqldb = Sqldb.instance;
+  final _service = ServiceConnection();
   final nameController = TextEditingController();
-  final phoneController = TextEditingController();
+  final emailController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
     nameController.dispose();
-    phoneController.dispose();
+    emailController.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
     final name = nameController.text.trim();
-    final phone = phoneController.text.trim();
+    final email = emailController.text.trim().toLowerCase();
 
-    if (name.isEmpty || phone.isEmpty) {
+    if (name.isEmpty || email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Veuillez remplir tous les champs')),
       );
       return;
     }
 
-    final ownerEmail = await SessionManager.getCurrentUserEmail() ?? '';
-    await _sqldb.insertContact(name: name, phone: phone, ownerEmail: ownerEmail);
+    final currentEmail = FirebaseAuth.instance.currentUser?.email ?? '';
 
-    if (mounted) Navigator.pop(context, true);
+    if (email == currentEmail) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vous ne pouvez pas vous ajouter vous-même')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final user = await _service.getUserByEmail(email);
+
+      if (user == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Aucun compte trouvé avec cet email'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+
+      await ContactService.instance.saveContact(
+        ownerEmail: currentEmail,
+        name: name,
+        email: email,
+      );
+
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur : $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -62,28 +102,30 @@ class _AddContactState extends State<AddContact> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 10),
                 child: TextField(
-                  controller: phoneController,
-                  keyboardType: TextInputType.phone,
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'Téléphone',
-                    hintText: 'Entrez le numéro de téléphone',
+                    labelText: 'Email',
+                    hintText: "Email du contact sur l'application",
                   ),
                 ),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red[300],
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(300, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                onPressed: _save,
-                child: const Text('Ajouter le contact', style: TextStyle(fontSize: 15)),
-              ),
+              _isLoading
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red[300],
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(300, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: _save,
+                      child: const Text('Ajouter le contact', style: TextStyle(fontSize: 15)),
+                    ),
               const SizedBox(height: 20),
               OutlinedButton(
                 style: OutlinedButton.styleFrom(

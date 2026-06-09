@@ -1,10 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../Config/SQLdb.dart';
 import '../models/ContactModel.dart';
 import '../models/MessageModel.dart';
+import '../services/ChatService.dart';
 import '../widgets/discussion/chat_bubble.dart';
 import '../widgets/discussion/chat_input_bar.dart';
-
 
 String _formatTime(String timestamp) {
   try {
@@ -25,16 +25,10 @@ String _formatTime(String timestamp) {
   }
 }
 
-
 class Discussion extends StatefulWidget {
   final ContactModel contact;
-  final String currentUserId;
 
-  const Discussion({
-    super.key,
-    required this.contact,
-    required this.currentUserId,
-  });
+  const Discussion({super.key, required this.contact});
 
   @override
   State<Discussion> createState() => _DiscussionState();
@@ -43,32 +37,14 @@ class Discussion extends StatefulWidget {
 class _DiscussionState extends State<Discussion> {
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final Sqldb _sqldb = Sqldb.instance;
-  List<Messagemodel> _messages = [];
+  late final String _currentUserId;
+  late final String _convId;
 
   @override
   void initState() {
     super.initState();
-    _loadMessages();
-  }
-
-  Future<void> _loadMessages() async {
-    final rows = await _sqldb.readMessagesByPeer(
-      currentUserId: widget.currentUserId,
-      peerId: widget.contact.phone,
-    );
-    if (mounted) {
-      setState(() {
-        _messages = rows.map((r) => Messagemodel(
-          r['idFrom'].toString(),
-          r['idTo'].toString(),
-          r['timestamp'].toString(),
-          r['content'].toString(),
-          r['type'] as int,
-        )).toList();
-      });
-      _scrollToBottom();
-    }
+    _currentUserId = FirebaseAuth.instance.currentUser?.email ?? '';
+    _convId = ChatService.conversationId(_currentUserId, widget.contact.email);
   }
 
   @override
@@ -93,19 +69,15 @@ class _DiscussionState extends State<Discussion> {
   Future<void> _sendMessage() async {
     final text = _inputController.text.trim();
     if (text.isEmpty) return;
-
-    final timestamp = DateTime.now().toIso8601String();
+    _inputController.clear();
 
     try {
-      await _sqldb.insertMessage(
-        idFrom: widget.currentUserId,
-        idTo: widget.contact.phone,
-        timestamp: timestamp,
+      await ChatService.instance.sendMessage(
+        convId: _convId,
+        idFrom: _currentUserId,
+        idTo: widget.contact.email,
         content: text,
-        type: 0,
       );
-      _inputController.clear();
-      await _loadMessages();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -143,33 +115,42 @@ class _DiscussionState extends State<Discussion> {
           ],
         ),
       ),
-
       body: Column(
         children: [
           Expanded(
-            child: _messages.isEmpty
-                ? Center(
+            child: StreamBuilder<List<Messagemodel>>(
+              stream: ChatService.instance.messagesStream(_convId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final messages = snapshot.data ?? [];
+                if (messages.isEmpty) {
+                  return Center(
                     child: Text(
                       "Aucun message",
                       style: TextStyle(color: Colors.grey[400]),
                     ),
-                  )
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    itemCount: _messages.length,
-                    itemBuilder: (context, index) {
-                      final msg = _messages[index];
-                      final isMine = msg.idFrom == widget.currentUserId;
-                      return ChatBubble(
-                        message: msg,
-                        isMine: isMine,
-                        formattedTime: _formatTime(msg.timestamp),
-                      );
-                    },
-                  ),
+                  );
+                }
+                _scrollToBottom();
+                return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final msg = messages[index];
+                    final isMine = msg.idFrom == _currentUserId;
+                    return ChatBubble(
+                      message: msg,
+                      isMine: isMine,
+                      formattedTime: _formatTime(msg.timestamp),
+                    );
+                  },
+                );
+              },
+            ),
           ),
-
           ChatInputBar(
             controller: _inputController,
             onSend: _sendMessage,

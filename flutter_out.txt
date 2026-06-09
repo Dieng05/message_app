@@ -1,0 +1,104 @@
+Launching lib\main.dart on TECNO KL5 in debug mode...
+Running Gradle task 'assembleDebug'...                             20,2s
+√ Built build\app\outputs\flutter-apk\app-debug.apk
+Installing build\app\outputs\flutter-apk\app-debug.apk...           5,7s
+D/FlutterJNI(13067): Beginning load of flutter...
+D/FlutterJNI(13067): flutter (null) was loaded normally!
+I/flutter (13067): [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+Syncing files to device TECNO KL5...                            
+D/CompatibilityChangeReporter(13067): Compat change id reported: 3400644; UID 10269; state: ENABLED
+Syncing files to device TECNO KL5...                               115ms
+
+Flutter run key commands.
+r Hot reload. 
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+A Dart VM Service on TECNO KL5 is available at: http://127.0.0.1:60204/sbXqlBf1jAs=/
+The Flutter DevTools debugger and profiler on TECNO KL5 is available at: http://127.0.0.1:60204/sbXqlBf1jAs=/devtools/?uri=ws://127.0.0.1:60204/sbXqlBf1jAs=/ws
+I/Choreographer(13067): Skipped 89 frames!  The application may be doing too much work on its main thread.
+E/TranChoreographerImpl(13067): skippedFrames: 89
+W/libc    (13067): Access denied finding property "persist.vendor.debug.gpud.enable"
+D/BLASTBufferQueue(13067): [SurfaceView[com.example.message_app/com.example.message_app.MainActivity]#1](f:0,a:1) acquireNextBufferLocked size=720x1520 mFrameNumber=1 applyTransaction=true mTimestamp=173142322523781(auto) mPendingTransactions.size=0 graphicBufferId=56122337656846 transform=0
+D/VRInsetsControllerHost(13067): setSystemBarsAppearance appearance:8 com.example.message_app/com.example.message_app.MainActivity
+I/Choreographer(13067): Skipped 31 frames!  The application may be doing too much work on its main thread.
+E/TranChoreographerImpl(13067): skippedFrames: 31
+I/config_debug(13067): updateDecorCaptionStatus: {1.0 208mcc25mnc [fr_FR] ldltr sw360dp w360dp h720dp 320dpi nrml long port night finger -keyb/v/h -nav/h winConfig={ mBounds=Rect(0, 0 - 720, 1600) mAppBounds=Rect(0, 80 - 720, 1520) mMaxBounds=Rect(0, 0 - 720, 1600) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mMultiWindowMode=normal mMultiWindowId=0 mWindowResiable=6 mInLargeScreen=-1 mActivityType=standard mAlwaysOnTop=undefined mRotation=ROTATION_0 mUiOptSpec=-1 mCurDisplayId=-1} as.2 s.1 fontWeightAdjustment=0} fromMultiWindow: false
+D/BLASTBufferQueue(13067): [VRI[MainActivity]#0](f:0,a:1) acquireNextBufferLocked size=720x1600 mFrameNumber=1 applyTransaction=true mTimestamp=173142788696089(auto) mPendingTransactions.size=0 graphicBufferId=56122337656857 transform=0
+I/OpenGLRenderer(13067): Davey! duration=833ms; Flags=1, FrameTimelineVsyncId=26332855, IntendedVsync=173141955862840, Vsync=173142472529517, InputEventId=0, HandleInputStart=173142487492012, AnimationStart=173142487494781, PerformTraversalsStart=173142487495781, DrawStart=173142522027089, FrameDeadline=173141975862840, FrameInterval=173142486717858, FrameStartTime=16666667, SyncQueued=173142523334858, SyncStart=173142523496319, IssueDrawCommandsStart=173142524555166, SwapBuffers=173142786789627, FrameCompleted=173142789918781, DequeueBufferDuration=2980385, QueueBufferDuration=853231, GpuCompleted=173142789893858, SwapBuffersCompleted=173142789918781, DisplayPresentTime=3665844781646352, CommandSubmissionCompleted=173142786789627, 
+D/ProfileInstaller(13067): Installing profile for com.example.message_app
+D/os.LiceInfo(13067): instance successfully. com.transsion.message.bank.v1.MessageBankLice@f898c39 from com.transsion.message.bank.IMessageBankLice
+D/TranClassInfo(13067): instance successfully. com.transsion.hubcore.internal.policy.TranDecorViewImpl@fb2e3df from com.transsion.hubcore.internal.policy.ITranDecorView
+W/ple.message_app(13067): userfaultfd: MOVE ioctl seems unsupported: Connection timed out
+W/WindowOnBackDispatcher(13067): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher(13067): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+I/ImeTracker(13067): com.example.message_app:a46d7917: onRequestShow at ORIGIN_CLIENT_SHOW_SOFT_INPUT reason SHOW_SOFT_INPUT
+D/InputMethodManager(13067): invalidateInput sessionid: 0
+D/InputMethodManager(13067): showSoftInput() view=io.flutter.embedding.android.FlutterView{a46f45c VFE...... .F....ID 0,0-720,1520 #1 aid=1073741824} flags=0 reason=SHOW_SOFT_INPUT
+I/AssistStructure(13067): Flattened final assist data: 472 bytes, containing 1 windows, 3 views
+D/InputConnectionAdaptor(13067): The input method toggled cursor monitoring on
+D/InsetsController(13067): show(ime(), fromIme=true)
+D/TranClassInfo(13067): instance successfully. com.transsion.hubcore.internal.jank.TranFrameTrackerImpl@13e0e06 from com.transsion.hubcore.internal.jank.ITranFrameTracker
+I/ImeTracker(13067): com.example.message_app:a46d7917: onShown
+D/InputConnectionAdaptor(13067): The input method toggled cursor monitoring off
+W/WindowOnBackDispatcher(13067): sendCancelIfRunning: isInProgress=falsecallback=ImeCallback=ImeOnBackInvokedCallback@193247957 Callback=android.window.IOnBackInvokedCallback$Stub$Proxy@31e7a1d
+I/ImeTracker(13067): com.example.message_app:37cefd24: onRequestHide at ORIGIN_CLIENT_HIDE_SOFT_INPUT reason HIDE_SOFT_INPUT_BY_INSETS_API
+I/ImeTracker(13067): com.example.message_app:9c4096ca: onHidden
+D/InputMethodManager(13067): invalidateInput sessionid: 0
+I/ImeTracker(13067): com.example.message_app:1d02990a: onRequestHide at ORIGIN_CLIENT_HIDE_SOFT_INPUT reason HIDE_SOFT_INPUT
+D/InputMethodManager(13067): invalidateInput sessionid: 0
+I/ImeTracker(13067): com.example.message_app:8108c445: onRequestShow at ORIGIN_CLIENT_SHOW_SOFT_INPUT reason SHOW_SOFT_INPUT
+D/InputMethodManager(13067): showSoftInput() view=io.flutter.embedding.android.FlutterView{a46f45c VFE...... .F...... 0,0-720,1520 #1 aid=1073741824} flags=0 reason=SHOW_SOFT_INPUT
+I/AssistStructure(13067): Flattened final assist data: 476 bytes, containing 1 windows, 3 views
+D/InputConnectionAdaptor(13067): The input method toggled cursor monitoring on
+D/InsetsController(13067): show(ime(), fromIme=true)
+I/ImeTracker(13067): com.example.message_app:8108c445: onShown
+D/InputMethodManager(13067): invalidateInput sessionid: 0
+I/ImeTracker(13067): com.example.message_app:67b1e000: onRequestShow at ORIGIN_CLIENT_SHOW_SOFT_INPUT reason SHOW_SOFT_INPUT
+D/InputMethodManager(13067): showSoftInput() view=io.flutter.embedding.android.FlutterView{a46f45c VFE...... .F...... 0,0-720,1520 #1 aid=1073741824} flags=0 reason=SHOW_SOFT_INPUT
+D/InputConnectionAdaptor(13067): The input method toggled cursor monitoring on
+I/AssistStructure(13067): Flattened final assist data: 488 bytes, containing 1 windows, 3 views
+D/InputConnectionAdaptor(13067): The input method toggled cursor monitoring off
+D/InputConnectionAdaptor(13067): The input method toggled cursor monitoring on
+D/InsetsController(13067): show(ime(), fromIme=true)
+I/ImeTracker(13067): com.example.message_app:67b1e000: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
+I/FirebaseAuth(13067): Logging in as ahmadou.dieng@gmail.com with empty reCAPTCHA token
+W/System  (13067): Ignoring header X-Firebase-Locale because its value was null.
+E/RecaptchaCallWrapper(13067): Initial task failed for action RecaptchaAction(action=signInWithPassword)with exception - The supplied auth credential is incorrect, malformed or has expired.
+D/InputConnectionAdaptor(13067): The input method toggled cursor monitoring off
+W/WindowOnBackDispatcher(13067): sendCancelIfRunning: isInProgress=falsecallback=ImeCallback=ImeOnBackInvokedCallback@193247957 Callback=android.window.IOnBackInvokedCallback$Stub$Proxy@e5ed6d
+I/ImeTracker(13067): com.example.message_app:f5f8e382: onRequestHide at ORIGIN_CLIENT_HIDE_SOFT_INPUT reason HIDE_SOFT_INPUT_BY_INSETS_API
+I/ImeTracker(13067): com.example.message_app:488842b2: onHidden
+D/InputMethodManager(13067): invalidateInput sessionid: 0
+I/FirebaseAuth(13067): Logging in as ahmadou.dieng@gmail.com with empty reCAPTCHA token
+W/System  (13067): Ignoring header X-Firebase-Locale because its value was null.
+E/RecaptchaCallWrapper(13067): Initial task failed for action RecaptchaAction(action=signInWithPassword)with exception - The supplied auth credential is incorrect, malformed or has expired.
+I/ImeTracker(13067): com.example.message_app:1083b43: onRequestShow at ORIGIN_CLIENT_SHOW_SOFT_INPUT reason SHOW_SOFT_INPUT
+D/InputMethodManager(13067): showSoftInput() view=io.flutter.embedding.android.FlutterView{a46f45c VFE...... .F...... 0,0-720,1520 #1 aid=1073741824} flags=0 reason=SHOW_SOFT_INPUT
+I/ImeTracker(13067): com.example.message_app:31237e8b: onRequestShow at ORIGIN_CLIENT_SHOW_SOFT_INPUT reason SHOW_SOFT_INPUT
+D/InputMethodManager(13067): showSoftInput() view=io.flutter.embedding.android.FlutterView{a46f45c VFE...... .F...... 0,0-720,1520 #1 aid=1073741824} flags=0 reason=SHOW_SOFT_INPUT
+D/InputConnectionAdaptor(13067): The input method toggled cursor monitoring on
+D/InsetsController(13067): show(ime(), fromIme=true)
+D/InsetsController(13067): show(ime(), fromIme=true)
+I/ImeTracker(13067): com.example.message_app:31237e8b: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
+W/ple.message_app(13067): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~lo0Ai7JbLnzpc-ueaqRIAA==/com.google.android.marvin.talkback-HeOgPaOSsMo1ghAYuciGUQ==/base.apk' with 1 weak references
+W/ple.message_app(13067): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~lo0Ai7JbLnzpc-ueaqRIAA==/com.google.android.marvin.talkback-HeOgPaOSsMo1ghAYuciGUQ==/split_config.arm64_v8a.apk' with 1 weak references
+W/ple.message_app(13067): ApkAssets: Deleting an ApkAssets object '<empty> and /system_ext/app/MasterOfLanguage/MasterOfLanguage.apk' with 1 weak references
+W/ple.message_app(13067): ApkAssets: Deleting an ApkAssets object '<empty> and /product/operator/app/TranssionNotes/TranssionNotes.apk' with 1 weak references
+W/ple.message_app(13067): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~jYCALVWhDqaReKpyfnzNJQ==/com.anthropic.claude-5P1KwB842TL3y5fZ73_D3Q==/base.apk' with 1 weak references
+W/ple.message_app(13067): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~jYCALVWhDqaReKpyfnzNJQ==/com.anthropic.claude-5P1KwB842TL3y5fZ73_D3Q==/split_config.arm64_v8a.apk' with 1 weak references
+W/ple.message_app(13067): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~jYCALVWhDqaReKpyfnzNJQ==/com.anthropic.claude-5P1KwB842TL3y5fZ73_D3Q==/split_config.fr.apk' with 1 weak references
+W/ple.message_app(13067): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~jYCALVWhDqaReKpyfnzNJQ==/com.anthropic.claude-5P1KwB842TL3y5fZ73_D3Q==/split_config.xhdpi.apk' with 1 weak references
+W/ple.message_app(13067): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~QZBAEbrMVIR6RbMMOkBVvA==/com.openai.chatgpt-kYVX2Qz-juo2MXuVRzCtww==/base.apk' with 1 weak references
+W/ple.message_app(13067): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~QZBAEbrMVIR6RbMMOkBVvA==/com.openai.chatgpt-kYVX2Qz-juo2MXuVRzCtww==/split_config.arm64_v8a.apk' with 1 weak references
+W/ple.message_app(13067): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~QZBAEbrMVIR6RbMMOkBVvA==/com.openai.chatgpt-kYVX2Qz-juo2MXuVRzCtww==/split_config.fr.apk' with 1 weak references
+W/ple.message_app(13067): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~QZBAEbrMVIR6RbMMOkBVvA==/com.openai.chatgpt-kYVX2Qz-juo2MXuVRzCtww==/split_config.xhdpi.apk' with 1 weak references
+W/ple.message_app(13067): ApkAssets: Deleting an ApkAssets object '<empty> and /system_ext/app/SmartPanel/SmartPanel.apk' with 1 weak references
+I/ImeTracker(13067): com.example.message_app:1083b43: onShown
+I/FirebaseAuth(13067): Logging in as ahmadou.dieng@gmail.com with empty reCAPTCHA token
+W/System  (13067): Ignoring header X-Firebase-Locale because its value was null.
+E/RecaptchaCallWrapper(13067): Initial task failed for action RecaptchaAction(action=signInWithPassword)with exception - The supplied auth credential is incorrect, malformed or has expired.
+Lost connection to device.
