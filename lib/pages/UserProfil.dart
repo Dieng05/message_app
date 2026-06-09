@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:message_app/models/User.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:message_app/models/User.dart' as model;
 import 'package:message_app/widgets/navigation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '../Config/MessageDatabase.dart';
+import '../services/ServiceConnection.dart';
 
 class Userprofil extends StatefulWidget {
   const Userprofil({super.key});
@@ -13,9 +13,12 @@ class Userprofil extends StatefulWidget {
 }
 
 class _UserprofilState extends State<Userprofil> {
-  User? _user;
+  model.User? _user;
   bool _isLoading = true;
   bool _isEditing = false;
+  bool _isSaving  = false;
+
+  final _service = ServiceConnection();
 
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
@@ -35,63 +38,77 @@ class _UserprofilState extends State<Userprofil> {
     super.dispose();
   }
 
-  // Récupère l'email sauvegardé au moment du login
-  Future<String?> _getCurrentUserEmail() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('connected_user_email');
-  }
-
+  // Charge le profil depuis Firestore via Firebase Auth
   Future<void> _loadUser() async {
     setState(() => _isLoading = true);
 
-    final email = await _getCurrentUserEmail();
-    if (email == null) {
+    final fbUser = fb.FirebaseAuth.instance.currentUser;
+
+    // Pas de session → retour à la connexion
+    if (fbUser == null) {
       if (mounted) Navigator.pushReplacementNamed(context, '/userconnection');
       return;
     }
 
-    final user = await MessageDatabase.instance.getUserByEmail(email);
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(fbUser.uid)
+        .get();
 
     if (mounted) {
       setState(() {
-        _user = user;
+        _user = doc.exists ? model.User.fromMap(doc.data()!) : null;
         _isLoading = false;
-        if (user != null) {
-          _firstNameController.text = user.firstName;
-          _lastNameController.text  = user.lastName;
+        if (_user != null) {
+          _firstNameController.text = _user!.firstName;
+          _lastNameController.text  = _user!.lastName;
         }
       });
     }
   }
 
+  // Sauvegarde les modifications dans Firestore
   Future<void> _saveChanges() async {
     if (_user == null) return;
 
-    final updatedUser = User(
-      firstName: _firstNameController.text.trim(),
-      lastName:  _lastNameController.text.trim(),
-      email:     _user!.email,
-      password:  _user!.password,
-    );
+    setState(() => _isSaving = true);
 
-    await MessageDatabase.instance.updateUser(updatedUser);
-    await _loadUser();
-    setState(() => _isEditing = false);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profil mis à jour ✓'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
+    try {
+      final updatedUser = model.User(
+        uid:       _user!.uid,
+        firstName: _firstNameController.text.trim(),
+        lastName:  _lastNameController.text.trim(),
+        email:     _user!.email,
       );
+
+      await _service.updateUser(updatedUser);
+      await _loadUser();
+
+      setState(() => _isEditing = false);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profil mis à jour ✓'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur : $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
+  // Déconnexion Firebase (supprime la session automatiquement)
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('connected_user_email');
+    await fb.FirebaseAuth.instance.signOut();
     if (mounted) Navigator.pushReplacementNamed(context, '/userconnection');
   }
 
@@ -118,26 +135,26 @@ class _UserprofilState extends State<Userprofil> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── En-tête profil ──────────────────────────
             Row(
               children: [
                 const SizedBox(width: 10),
                 CircleAvatar(
                   radius: 30,
-                  backgroundImage:
-                  const AssetImage("assets/images/avatar.png"),
-                  onBackgroundImageError: (_, __) {},
+                  backgroundColor: Colors.red[300],
                   child: Text(
-                    '${_user!.firstName.isNotEmpty ? _user!.firstName[0] : '?'}${_user!.lastName.isNotEmpty ? _user!.lastName[0] : ''}'
+                    '${_user!.firstName.isNotEmpty ? _user!.firstName[0] : '?'}'
+                        '${_user!.lastName.isNotEmpty ? _user!.lastName[0] : ''}'
                         .toUpperCase(),
                     style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 20),
                 Column(
-                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -163,7 +180,7 @@ class _UserprofilState extends State<Userprofil> {
             const SizedBox(height: 30),
             const Divider(),
 
-            // Champs affichage ou édition
+            // ── Mode édition ────────────────────────────
             if (_isEditing) ...[
               const SizedBox(height: 16),
               TextField(
@@ -172,7 +189,8 @@ class _UserprofilState extends State<Userprofil> {
                   labelText: 'Prénom',
                   prefixIcon: const Icon(Icons.badge_outlined),
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -182,24 +200,36 @@ class _UserprofilState extends State<Userprofil> {
                   labelText: 'Nom',
                   prefixIcon: const Icon(Icons.person_outline),
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _saveChanges,
-                  icon: const Icon(Icons.save_outlined),
+                  onPressed: _isSaving ? null : _saveChanges,
+                  icon: _isSaving
+                      ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                      : const Icon(Icons.save_outlined),
                   label: const Text('Enregistrer'),
                   style: ElevatedButton.styleFrom(
-                    padding:
-                    const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
               ),
+
+              // ── Mode affichage ──────────────────────────
             ] else ...[
               ListTile(
                 leading: const Icon(Icons.badge_outlined),
@@ -222,20 +252,22 @@ class _UserprofilState extends State<Userprofil> {
             const Divider(),
             const SizedBox(height: 10),
 
-            // ── Bouton déconnexion ────────────────────────────────
+            // ── Déconnexion ─────────────────────────────
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: _logout,
                 icon: const Icon(Icons.logout, color: Colors.red),
-                label: const Text('Se déconnecter',
-                    style: TextStyle(color: Colors.red)),
+                label: const Text(
+                  'Se déconnecter',
+                  style: TextStyle(color: Colors.red),
+                ),
                 style: OutlinedButton.styleFrom(
-                  padding:
-                  const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                   side: const BorderSide(color: Colors.red),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ),

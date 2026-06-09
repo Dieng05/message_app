@@ -1,8 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:message_app/services/ServiceConnection.dart';
-
-import '../models/User.dart';
+import '../services/ServiceConnection.dart';
 
 class Registerform extends StatefulWidget {
   const Registerform({super.key});
@@ -12,13 +9,67 @@ class Registerform extends StatefulWidget {
 }
 
 class _RegisterformState extends State<Registerform> {
-
   final _service = ServiceConnection();
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final passwordVerify = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    firstNameController.dispose();
+    lastNameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    passwordVerify.dispose();
+    super.dispose();
+  }
+
+  Future<void> _register() async {
+    // Vérification des champs vides
+    if (firstNameController.text.trim().isEmpty ||
+        lastNameController.text.trim().isEmpty ||
+        emailController.text.trim().isEmpty ||
+        passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez remplir tous les champs')),
+      );
+      return;
+    }
+
+    // Vérification des mots de passe
+    if (passwordController.text != passwordVerify.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Les mots de passe ne correspondent pas')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _service.insertUser(
+        firstName: firstNameController.text.trim(),
+        lastName: lastNameController.text.trim(),
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
+
+      if (context.mounted) {
+        Navigator.pushNamed(context, '/userconnection');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +78,11 @@ class _RegisterformState extends State<Registerform> {
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 10),
               child: TextField(
                 controller: firstNameController,
                 keyboardType: TextInputType.text,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Nom',
                   hintText: 'Entrez votre nom',
@@ -39,23 +90,23 @@ class _RegisterformState extends State<Registerform> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 10),
               child: TextField(
                 controller: lastNameController,
                 keyboardType: TextInputType.text,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: 'Prenom',
-                  hintText: 'Entrez votre prenom',
+                  labelText: 'Prénom',
+                  hintText: 'Entrez votre prénom',
                 ),
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 10),
               child: TextField(
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Email',
                   hintText: 'Entrez votre email',
@@ -63,61 +114,48 @@ class _RegisterformState extends State<Registerform> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 10),
               child: TextField(
                 controller: passwordController,
                 obscureText: true,
-                keyboardType: TextInputType.visiblePassword,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: 'Password',
-                  hintText: 'Entrez votre password',
+                  labelText: 'Mot de passe',
+                  hintText: 'Entrez votre mot de passe',
                 ),
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 35, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 10),
               child: TextField(
                 controller: passwordVerify,
                 obscureText: true,
-                keyboardType: TextInputType.visiblePassword,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: 'Confirm Password',
-                  hintText: 'Entrez votre password',
+                  labelText: 'Confirmer le mot de passe',
+                  hintText: 'Répétez votre mot de passe',
                 ),
               ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
+            const SizedBox(height: 20),
+            _isLoading
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[300],
                 foregroundColor: Colors.white,
-                minimumSize: Size(300, 50),
+                minimumSize: const Size(300, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              onPressed: () {
-                if (passwordController.text != passwordVerify.text) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Les mots de passe ne correspondent pas'),
-                    ),
-                  );
-                  return;
-                }
-                _service.insertUser(User(firstName: firstNameController.text, lastName: lastNameController.text, email: emailController.text, password: passwordController.text));
-                Navigator.pushNamed(context, '/userconnection');
-              },
-              child: Text('Créer le Compte', style: TextStyle(fontSize: 15)),
+              onPressed: _register,
+              child: const Text('Créer le Compte', style: TextStyle(fontSize: 15)),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/userconnection');
-              },
-              child: Text('J\'ai déja un compte'),
+              onPressed: () => Navigator.pushNamed(context, '/userconnection'),
+              child: const Text('J\'ai déjà un compte'),
             ),
           ],
         ),

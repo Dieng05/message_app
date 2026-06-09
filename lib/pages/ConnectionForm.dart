@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:message_app/Config/ElementUtiles.dart';
-import 'package:message_app/Config/SessionManager.dart';
 import '../services/ServiceConnection.dart';
 
 class Connectionform extends StatefulWidget {
@@ -11,9 +9,48 @@ class Connectionform extends StatefulWidget {
 }
 
 class _ConnectionformState extends State<Connectionform> {
-  final emailController    = TextEditingController();
+  final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  final _service           = ServiceConnection();
+  final _service = ServiceConnection();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez remplir tous les champs')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final user = await _service.verifyUser(email, password);
+
+      if (user != null && context.mounted) {
+        // Plus besoin de SessionManager : Firebase garde la session automatiquement
+        Navigator.pushNamed(context, '/contact');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +62,9 @@ class _ConnectionformState extends State<Connectionform> {
             child: TextField(
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                labelText: '${email}',
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Email',
                 hintText: 'Entrez votre email',
               ),
             ),
@@ -37,23 +74,35 @@ class _ConnectionformState extends State<Connectionform> {
             child: TextField(
               controller: passwordController,
               obscureText: true,
-              keyboardType: TextInputType.visiblePassword,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'Password',
-                hintText: 'Entrez votre password',
+                labelText: 'Mot de passe',
+                hintText: 'Entrez votre mot de passe',
               ),
             ),
           ),
           const SizedBox(height: 20),
           TextButton(
-            onPressed: () async {},
-            child: Text(
-              'Mot de passe Oublié ?',
-              style: TextStyle(color: Colors.red[300]),
-            ),
+            onPressed: () async {
+              final email = emailController.text.trim();
+              if (email.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Entrez votre email d\'abord')),
+                );
+                return;
+              }
+              await _service.resetPassword(email);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Email de réinitialisation envoyé')),
+                );
+              }
+            },
+            child: Text('Mot de passe oublié ?', style: TextStyle(color: Colors.red[300])),
           ),
-          ElevatedButton(
+          _isLoading
+              ? const CircularProgressIndicator()
+              : ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red[300],
               foregroundColor: Colors.white,
@@ -62,35 +111,12 @@ class _ConnectionformState extends State<Connectionform> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            onPressed: () async {
-              final email    = emailController.text.trim();
-              final password = passwordController.text.trim();
-
-              final isValid = await _service.verifyUser(email, password);
-
-              if (isValid) {
-                await SessionManager.setCurrentUserEmail(email);
-
-                if (context.mounted) {
-                  Navigator.pushNamed(context, '/contact');
-                }
-              } else {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Email ou mot de passe incorrect'),
-                    ),
-                  );
-                }
-              }
-            },
+            onPressed: _login,
             child: const Text('Se Connecter', style: TextStyle(fontSize: 20)),
           ),
           const SizedBox(height: 20),
           TextButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/userregister');
-            },
+            onPressed: () => Navigator.pushNamed(context, '/userregister'),
             child: const Text('Créer un nouveau Compte'),
           ),
         ],

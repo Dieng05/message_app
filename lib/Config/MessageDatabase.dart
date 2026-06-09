@@ -27,8 +27,7 @@ class MessageDatabase {
       '''CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, 
       firstName TEXT NOT NULL, 
       lastName TEXT NOT NULL, 
-      email TEXT UNIQUE NOT NULL, 
-      password TEXT NOT NULL)''',
+      email TEXT UNIQUE NOT NULL)''',
     );
   }
 
@@ -49,7 +48,7 @@ class MessageDatabase {
         firstName: maps.first['firstName'].toString(),
         lastName: maps.first['lastName'].toString(),
         email: maps.first['email'].toString(),
-        password: maps.first['password'].toString(),
+        uid: maps.first['uid'].toString(),
       );
     }
     return null;
@@ -73,7 +72,8 @@ class MessageDatabase {
         firstName: maps[i]['firstName'].toString(),
         lastName: maps[i]['lastName'].toString(),
         email: maps[i]['email'].toString(),
-        password: maps[i]['password'].toString(),
+        uid: maps[i]['uid'].toString(),
+
       );
     });
   }
