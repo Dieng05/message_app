@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:message_app/firebase_options.dart';
 import 'package:message_app/pages/Acceuil.dart';
 import 'package:message_app/pages/UserConnection.dart';
 import 'package:message_app/pages/UserProfil.dart';
@@ -8,7 +9,9 @@ import 'package:message_app/pages/contact.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform
+  );
   runApp(const MyApp());
 }
 
