@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/ServiceConnection.dart';
+import '../../services/ServiceConnection.dart';
 
 class Registerform extends StatefulWidget {
   const Registerform({super.key});
@@ -28,7 +28,6 @@ class _RegisterformState extends State<Registerform> {
   }
 
   Future<void> _register() async {
-    // Vérification des champs vides
     if (firstNameController.text.trim().isEmpty ||
         lastNameController.text.trim().isEmpty ||
         emailController.text.trim().isEmpty ||
@@ -39,10 +38,9 @@ class _RegisterformState extends State<Registerform> {
       return;
     }
 
-    // Vérification des mots de passe
     if (passwordController.text != passwordVerify.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Les mots de passe ne correspondent pas')),
+        const SnackBar(content: Text('Le mots de passe ne correspondent pas')),
       );
       return;
     }

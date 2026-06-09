@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:message_app/pages/ConnectionForm.dart';
+import 'package:message_app/widgets/Form/ConnectionForm.dart';
 
 class Userconnection extends StatefulWidget {
   const Userconnection({super.key});

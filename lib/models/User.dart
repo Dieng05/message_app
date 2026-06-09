@@ -1,5 +1,5 @@
 class User {
-  final String uid; // Firebase Auth UID
+  final String uid;
   final String firstName;
   final String lastName;
   final String email;
@@ -11,7 +11,7 @@ class User {
     required this.email,
   });
 
-  // Pour sauvegarder dans Firestore
+
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
@@ -21,7 +21,7 @@ class User {
     };
   }
 
-  // Pour lire depuis Firestore
+
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
       uid: map['uid'] ?? '',

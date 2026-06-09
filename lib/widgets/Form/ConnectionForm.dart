@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/ServiceConnection.dart';
+import '../../services/ServiceConnection.dart';
 
 class Connectionform extends StatefulWidget {
   const Connectionform({super.key});
@@ -38,7 +38,6 @@ class _ConnectionformState extends State<Connectionform> {
       final user = await _service.verifyUser(email, password);
 
       if (user != null && context.mounted) {
-        // Plus besoin de SessionManager : Firebase garde la session automatiquement
         Navigator.pushNamed(context, '/contact');
       }
     } catch (e) {

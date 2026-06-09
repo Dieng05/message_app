@@ -7,7 +7,7 @@ class ChatService {
 
   final _db = FirebaseFirestore.instance;
 
-  // Clé déterministe : les deux appareils calculent le même ID sans coordination
+
   static String conversationId(String emailA, String emailB) {
     final sorted = [emailA, emailB]..sort();
     return '${sorted[0]}_${sorted[1]}';
@@ -69,7 +69,7 @@ class ChatService {
             }).toList());
   }
 
-  // Pas d'orderBy pour éviter l'index composite Firestore — tri côté client
+
   Stream<QuerySnapshot<Map<String, dynamic>>> conversationsStream(String userEmail) {
     return _db
         .collection('conversations')

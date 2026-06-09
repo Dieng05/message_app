@@ -3,7 +3,7 @@ import 'dart:ui';
 class ContactModel {
   final String name;
   final String phone;
-  final String email; // identifiant Firestore (colonne userId en SQLite)
+  final String email;
 
   const ContactModel({
     required this.name,

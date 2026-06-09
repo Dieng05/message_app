@@ -38,13 +38,13 @@ class _UserprofilState extends State<Userprofil> {
     super.dispose();
   }
 
-  // Charge le profil depuis Firestore via Firebase Auth
+
   Future<void> _loadUser() async {
     setState(() => _isLoading = true);
 
     final fbUser = fb.FirebaseAuth.instance.currentUser;
 
-    // Pas de session → retour à la connexion
+
     if (fbUser == null) {
       if (mounted) Navigator.pushReplacementNamed(context, '/userconnection');
       return;
@@ -67,7 +67,7 @@ class _UserprofilState extends State<Userprofil> {
     }
   }
 
-  // Sauvegarde les modifications dans Firestore
+
   Future<void> _saveChanges() async {
     if (_user == null) return;
 
@@ -106,7 +106,7 @@ class _UserprofilState extends State<Userprofil> {
     }
   }
 
-  // Déconnexion Firebase (supprime la session automatiquement)
+
   Future<void> _logout() async {
     await fb.FirebaseAuth.instance.signOut();
     if (mounted) Navigator.pushReplacementNamed(context, '/userconnection');
@@ -135,7 +135,7 @@ class _UserprofilState extends State<Userprofil> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── En-tête profil ──────────────────────────
+
             Row(
               children: [
                 const SizedBox(width: 10),
@@ -180,7 +180,7 @@ class _UserprofilState extends State<Userprofil> {
             const SizedBox(height: 30),
             const Divider(),
 
-            // ── Mode édition ────────────────────────────
+
             if (_isEditing) ...[
               const SizedBox(height: 16),
               TextField(
@@ -229,7 +229,7 @@ class _UserprofilState extends State<Userprofil> {
                 ),
               ),
 
-              // ── Mode affichage ──────────────────────────
+
             ] else ...[
               ListTile(
                 leading: const Icon(Icons.badge_outlined),
@@ -252,7 +252,7 @@ class _UserprofilState extends State<Userprofil> {
             const Divider(),
             const SizedBox(height: 10),
 
-            // ── Déconnexion ─────────────────────────────
+
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
